@@ -69,6 +69,13 @@ def check_send_param(**kwargs):
     """
     Vérifie la validité des paramètres envoyés.
     """
+    token = kwargs.get('token')
+    if not token:
+        raise ValueError("Company agent token missing")
+    
+    if len(token) > 255:
+        raise ValueError("Token length is incorrect.")
+
     date = kwargs.get('date')
     if not date:
         raise ValueError("Date is required")
@@ -100,28 +107,23 @@ def send_data():
     try:
         json_data = request.get_json()
         token = json_data.get("company_agent_token")
-        if not token:
-            return jsonify({"error": "Company agent token missing"}), 401
+        date = json_data.get("date")
+        data = json_data.get("data")
+        id_agent = json_data.get("id_agent")
+
+        check_send_param(date=date, data=data, id_agent=id_agent, token=token)
 
         company = Company().get_company_by_agent_token(token)
         if not company:
             return jsonify({"error": "Invalid token"}), 401
 
-        date = json_data.get("date")
-        data = json_data.get("data")
-        id_agent = json_data.get("id_agent")
-
-        check_send_param(date=date, data=data, id_agent=id_agent)
-
         Report().insert_data(date, data, id_agent, company.id)
 
         return jsonify({"message": "Data received successfully"})
 
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-
-    except Exception as e:
-        return jsonify({"error": "Internal server error", "details": str(e)}), 500
+    except (ValueError, Exception) as e:
+        ic(e)
+        return jsonify({"message": "Error hacker will not get the info"}), 500
 
 
 

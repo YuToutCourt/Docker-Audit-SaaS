@@ -1,14 +1,25 @@
+import os
 import mysql.connector
 from mysql.connector import Error
 from icecream import ic
 
+from dotenv import load_dotenv
+
+load_dotenv()
+HOST = os.getenv("HOST")
+USER = os.getenv("USER_DB")
+PASSWORD = os.getenv("PASSWORD_DB")
+DATABASE = os.getenv("DATABASE")
+PORT = os.getenv("PORT")
+
 class DataBase:
-    def __init__(self, host, user, password, database):
+    def __init__(self):
         """Initialisation de la connexion à la base de données."""
-        self.host = host
-        self.user = user
-        self.password = password
-        self.database = database
+        self.host = HOST
+        self.user = USER
+        self.password = PASSWORD
+        self.database = DATABASE
+        self.port = PORT
         self.connection = None
         self.connect()
 
@@ -19,7 +30,8 @@ class DataBase:
                 host=self.host,
                 user=self.user,
                 password=self.password,
-                database=self.database
+                database=self.database,
+                port=self.port 
             )
             if self.connection.is_connected():
                 ic("Connexion réussie à la base de données.")
@@ -44,25 +56,9 @@ class DataBase:
         except Error as e:
             ic(f"Erreur SQL: {e}")
             raise Exception(f"Erreur SQL: {e}")
-
-    def insert(self, query, params=None, check_duplicates_query=None):
-        """Insère une nouvelle donnée dans la base de données avec vérification de doublon."""
-        if check_duplicates_query:
-            # Vérification des doublons avant insertion
-            if not self.select(check_duplicates_query, params):
-                return self.execute_query(query, params)
-            else:
-                ic("Doublon détecté, insertion annulée.")
-                return False
-        else:
-            return self.execute_query(query, params)
-
-    def update(self, query, params):
-        """Met à jour les données dans la base de données."""
-        return self.execute_query(query, params)
-
-    def select(self, query, params=None):
-        """Sélectionne des données dans la base de données."""
+        
+    def fetch_query(self, query, params=None):
+        """Exécute une requête SQL (SELECT) et retourne les résultats."""
         try:
             cursor = self.connection.cursor(dictionary=True)
             cursor.execute(query, params)
@@ -72,3 +68,5 @@ class DataBase:
         except Error as e:
             ic(f"Erreur SQL: {e}")
             raise Exception(f"Erreur SQL: {e}")
+
+    

@@ -10,6 +10,7 @@ from entity.company import Company
 from entity.report import Report
 from entity.user import User
 from parser.parser import Parser
+from validator.validator import Validator
 
 load_dotenv()
 
@@ -61,47 +62,6 @@ def login():
     return jsonify({"error": "Identifiants invalides"}), 401
 
 
-import base64
-import re
-from datetime import datetime
-
-def check_send_param(**kwargs):
-    """
-    Vérifie la validité des paramètres envoyés.
-    """
-    token = kwargs.get('token')
-    if not token:
-        raise ValueError("Company agent token missing")
-    
-    if len(token) > 255:
-        raise ValueError("Token length is incorrect.")
-
-    date = kwargs.get('date')
-    if not date:
-        raise ValueError("Date is required")
-    
-    if len(date) != 19:
-        raise ValueError("Date length is incorrect. Expected format: 'YYYY-MM-DD HH:MM:SS'")
-
-    try:
-        datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-    except ValueError:
-        raise ValueError("Invalid date format. Expected format: 'YYYY-MM-DD HH:MM:SS'")
-
-    data = kwargs.get('data')
-    if not data or not isinstance(data, str):
-        raise ValueError("Data is required and must be a string")
-
-    try:
-        base64.b64decode(data, validate=True)
-    except Exception:
-        raise ValueError("Data must be in base64 format")
-
-    id_agent = kwargs.get('id_agent')
-    if not id_agent or not isinstance(id_agent, int):
-        raise ValueError("ID agent is required and must be an integer")
-
-
 @api.route("/send", methods=["POST"])
 def send_data():
     try:
@@ -111,7 +71,7 @@ def send_data():
         data = json_data.get("data")
         id_agent = json_data.get("id_agent")
 
-        check_send_param(date=date, data=data, id_agent=id_agent, token=token)
+        Validator().check_param(date=date, data=data, id_agent=id_agent, token=token)
 
         company = Company().get_company_by_agent_token(token)
         if not company:
@@ -124,6 +84,16 @@ def send_data():
     except (ValueError, Exception) as e:
         ic(e)
         return jsonify({"message": "Error hacker will not get the info"}), 500
+
+
+@api.route("/add_agent", methods=["POST"])
+def add_agent():
+    json_data = request.get_json()
+    token = json_data.get("company_agent_token")
+    name = json_data.get("name")
+    date = json_data.get("date")
+
+    Validator().check_param(date=date, name=name, token=token)
 
 
 

@@ -13,5 +13,11 @@ app.register_blueprint(api, url_prefix='/api')
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 
 
+@app.route('/')
+def index():
+    """Page d'accueil."""
+    return render_template('index.html')
+
+
 if  __name__ == '__main__':
     app.run(debug=True, port=2424)

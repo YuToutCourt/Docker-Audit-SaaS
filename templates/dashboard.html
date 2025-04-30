@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  <div class="dashboard-container">
+    <h1 class="dashboard-title">Bienvenue, {{ session.user }}</h1>
+
+    <section class="agent-box">
+      {% for agent in agents %}
+        <a href="/agent/{{agent.id}}" class="agent-link">
+          <div class="agent-container {% if agent.status != 'actif' %}inactive-container{% endif %}">
+            <div class="agent-header">{{ agent.name }}</div>
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Agent Icon" class="agent-img">
+            <div class="agent-status">
+              <span class="{% if agent.status=='actif' %}active-title{% else %}inactive-title{% endif %}">
+                {{ agent.status }}
+              </span>
+            </div>
+            <div class="agent-footer">
+              Dernier scan : {{ agent.last_scan }}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </section>
+  </div>
+{% endblock %}

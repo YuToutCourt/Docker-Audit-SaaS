@@ -1,0 +1,22 @@
+<!-- templates/login.html -->
+{% extends 'base.html' %}
+
+{% block body %}
+  <div class="login-container">
+    <h1 class="login-title">Connexion</h1>
+    <form action="{{ url_for('/api/login') }}" method="post" class="login-form">
+      <div class="form-group">
+        <label for="username">Identifiant</label>
+        <input type="text" id="username" name="username" placeholder="Votre identifiant" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" name="password" placeholder="Votre mot de passe" required>
+      </div>
+      <button type="submit" class="btn btn-primary login-button">Se connecter</button>
+    </form>
+    {% if error %}
+      <p class="login-error">{{ error }}</p>
+    {% endif %}
+  </div>
+{% endblock %}

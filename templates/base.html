@@ -6,18 +6,45 @@
     <title>DockerAudit</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style/styles.css')}}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/logo.png')}}">
-
 </head>
 <body>
     <div class="navbar">
         <div>
-            <a href="/">Home</a>
-            <a href="/login">Login</a>
+            <a href="{{ url_for('dashboard') if session.get('user') else url_for('index') }}">Home</a>
+            {% if session.get('user') %}
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+            {% endif %}
         </div>
         <a href="/">
             <img src="{{ url_for('static', filename='images/logo.png')}}" alt="Logo" class="logo">
         </a>
     </div>
-{% block body %}{% endblock %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-messages" style="bottom: 20px; right: 20px;">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block body %}{% endblock %}   
+
+    <!-- Script pour fade-out des messages flash -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const flashes = document.querySelectorAll('.flash');
+        flashes.forEach(el => {
+          el.style.transition = 'opacity 0.5s ease-out';
+        });
+        setTimeout(() => {
+          flashes.forEach(el => el.style.opacity = '0');
+        }, 3000);
+      });
+    </script>
 </body>
 </html>

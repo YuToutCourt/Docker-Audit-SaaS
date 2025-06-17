@@ -4,23 +4,29 @@
   <div class="dashboard-container">
     <h1 class="dashboard-title">Bienvenue, {{ session.user }}</h1>
 
-    <section class="agent-box">
-      {% for agent in agents %}
-        <a href="/agent/{{agent.id}}" class="agent-link">
-          <div class="agent-container {% if agent.status != 'actif' %}inactive-container{% endif %}">
-            <div class="agent-header">{{ agent.name }}</div>
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Agent Icon" class="agent-img">
-            <div class="agent-status">
-              <span class="{% if agent.status=='actif' %}active-title{% else %}inactive-title{% endif %}">
-                {{ agent.status }}
-              </span>
+    {% if agents|length == 0 %}
+      <div class="no-agent-message">
+        Aucun agent n'est actuellement configuré pour votre entreprise.
+      </div>
+    {% else %}
+      <section class="agent-box">
+        {% for agent in agents %}
+          <a href="/agent/{{agent.id_agent}}" class="agent-link">
+            <div class="agent-container {% if agent.enabled != 1 %}inactive-container{% endif %}">
+              <div class="agent-header">{{ agent.name }}</div>
+              <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Agent Icon" class="agent-img">
+              <div class="agent-status">
+                <span class="{% if agent.enabled == 1 %}active-title{% else %}inactive-title{% endif %}">
+                  {{ 'Actif' if agent.enabled == 1 else 'Inactif' }}
+                </span>
+              </div>
+              <div class="agent-footer">
+                Dernier scan : {{ agent.next_scan_date_ or 'Jamais' }}
+              </div>
             </div>
-            <div class="agent-footer">
-              Dernier scan : {{ agent.last_scan }}
-            </div>
-          </div>
-        </a>
-      {% endfor %}
-    </section>
+          </a>
+        {% endfor %}
+      </section>
+    {% endif %}
   </div>
 {% endblock %}

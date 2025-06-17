@@ -9,8 +9,8 @@ from entity.agent import Agent
 from entity.company import Company
 from entity.report import Report
 from entity.user import User
-from parser.parser import Parser
 from validator.validator import Validator
+from database.database import Database
 
 load_dotenv()
 
@@ -24,6 +24,18 @@ def token_required(f):
     """Décorateur pour exiger un JWT valide sur certaines routes."""
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Vérifie d'abord si l'utilisateur est authentifié via la session
+        if session.get('user') and session.get('token'):
+            try:
+                # Vérifie que le token de la session est valide
+                decoded = jwt.decode(session['token'], SECRET_KEY, algorithms=["HS256"])
+                request.user = decoded
+                return f(*args, **kwargs)
+            except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+                session.clear()
+                return jsonify({"error": "Session expirée"}), 401
+
+        # Sinon, vérifie le token JWT dans les headers
         token = request.headers.get("Authorization")
         if not token:
             return jsonify({"error": "Token manquant"}), 401
@@ -47,7 +59,11 @@ def login():
     username = data.get("username")
     password = data.get("password")
 
-    if USERS.get(username) == password:
+    db = Database()
+    user = db.login_user(username, password)
+    db.close()
+
+    if user:
         token = jwt.encode(
             {
                 "username": username,
@@ -57,7 +73,10 @@ def login():
             algorithm="HS256",
         )
         session["token"] = token
-        return jsonify({"token": token})
+        return jsonify({
+            "token": token,
+            "id_company": user.id_company
+        })
 
     return jsonify({"error": "Identifiants invalides"}), 401
 

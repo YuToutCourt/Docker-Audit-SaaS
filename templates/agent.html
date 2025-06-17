@@ -6,9 +6,12 @@
     <h1 class="agent-detail-title">Détails de l'agent : {{ agent.name }}</h1>
 
     <div class="agent-info">
-      <p><strong>État :</strong> 
-        <span class="status {% if agent.status=='actif' %}active-title{% else %}inactive-title{% endif %}">
-          {{ 'Actif' if agent.status=='actif' else 'Inactif' }}
+      <p>
+        <strong>État :</strong>
+        <span class="agent-status">
+          <span class="{% if agent.enabled == 1 %}active-title{% else %}inactive-title{% endif %}">
+            {{ 'Actif' if agent.enabled == 1 else 'Inactif' }}
+          </span>
         </span>
       </p>
       <p><strong>Dernier scan :</strong> {{ agent.last_scan }}</p>
@@ -16,10 +19,10 @@
     </div>
 
     <h2>Configuration de l'agent</h2>
-    <form action="/" method="post" class="agent-config-form">
+    <form action="{{ url_for('agent', agent_id=agent.id_agent) }}" method="post" class="agent-config-form">
       <div class="form-group">
-        <label for="next_scan">Prochain scan quotidien à :</label>
-        <input type="time" id="next_scan" name="next_scan" value="{{ agent.next_scan_time }}" required>
+        <label for="next_scan">Prochain scan (jour et heure) :</label>
+        <input type="datetime-local" id="next_scan" name="next_scan" value="{% if agent.next_scan_date_ %}{{ agent.next_scan_date_.strftime('%Y-%m-%dT%H:%M') }}{% else %}{% endif %}" required>
       </div>
       <div class="form-group">
         <label for="enabled">Activer l'agent :</label>

@@ -1,8 +1,6 @@
 import os
-import mysql.connector
-from mysql.connector import Error
-from icecream import ic
-
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,61 +10,30 @@ PASSWORD = os.getenv("PASSWORD_DB")
 DATABASE = os.getenv("DATABASE")
 PORT = os.getenv("PORT")
 
-class DataBase:
+# Chaîne de connexion SQLAlchemy pour MySQL
+SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+class Database:
     def __init__(self):
-        """Initialisation de la connexion à la base de données."""
-        self.host = HOST
-        self.user = USER
-        self.password = PASSWORD
-        self.database = DATABASE
-        self.port = PORT
-        self.connection = None
-        self.connect()
+        self.session = SessionLocal()
 
-    def connect(self):
-        """Connexion à la base de données."""
-        try:
-            self.connection = mysql.connector.connect(
-                host=self.host,
-                user=self.user,
-                password=self.password,
-                database=self.database,
-                port=self.port 
-            )
-            if self.connection.is_connected():
-                ic("Connexion réussie à la base de données.")
-
-        except Error as e:
-            ic(f"Erreur lors de la connexion à MySQL: {e}")
-            raise Exception(f"Erreur lors de la connexion à MySQL: {e}")
-        
     def close(self):
-        """Fermeture de la connexion."""
-        if self.connection.is_connected():
-            self.connection.close()
+        self.session.close()
 
-    def execute_query(self, query, params=None):
-        """Exécute une requête SQL (INSERT, UPDATE, DELETE)."""
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute(query, params)
-            self.connection.commit()
-            cursor.close()
-            return True
-        except Error as e:
-            ic(f"Erreur SQL: {e}")
-            raise Exception(f"Erreur SQL: {e}")
-        
-    def fetch_query(self, query, params=None):
-        """Exécute une requête SQL (SELECT) et retourne les résultats."""
-        try:
-            cursor = self.connection.cursor(dictionary=True)
-            cursor.execute(query, params)
-            result = cursor.fetchall()
-            cursor.close()
-            return result
-        except Error as e:
-            ic(f"Erreur SQL: {e}")
-            raise Exception(f"Erreur SQL: {e}")
+    def login_user(self, username, password):
+        from entity.user import User  # Import ici pour éviter le circular import
+        """Retourne l'utilisateur si username/password sont corrects et enabled, sinon None."""
+        user = self.session.query(User).filter_by(username=username, password=password, enabled=1).first()
+        return user
+
+# Utilisation :
+# from database.database import SessionLocal
+# session = SessionLocal()
+# ...
+# session.close()
 
     

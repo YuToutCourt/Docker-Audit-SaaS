@@ -1,0 +1,6 @@
+dotenv
+flask
+icecream
+mysql-connector-python
+requests
+jwt

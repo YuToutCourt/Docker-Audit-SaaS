@@ -9,8 +9,11 @@ CREATE TABLE Agent (
    date_ DATETIME,
    enabled TINYINT(1),
    health_check VARCHAR(50),
-   PRIMARY KEY(id_agent)
+   id_company BIGINT NOT NULL,
+   PRIMARY KEY(id_agent),
+   FOREIGN KEY(id_company) REFERENCES Company(id_company)
 );
+
 
 CREATE TABLE User_ (
    id BIGINT AUTO_INCREMENT,

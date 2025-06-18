@@ -3,4 +3,5 @@ flask
 icecream
 mysql-connector-python
 requests
-jwt
+PyJWT
+SQLAlchemy

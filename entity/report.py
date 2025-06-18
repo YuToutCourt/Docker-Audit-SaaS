@@ -1,20 +1,12 @@
-from database.database import DataBase
-from icecream import ic
+from sqlalchemy import Column, Integer, String, ForeignKey
+from database.database import Base
 
-class Report:
-    def __init__(self, date=None, dataB64=None, id_agent=None, id_company=None):
-        self.date_ = date
-        self.dataB64 = dataB64
-        self.id_agent = id_agent
-        self.id_company = id_company
-
-    def insert_data(self, date, data, id_agent, id_company):
-        db = DataBase()
-
-        query = """
-        INSERT INTO Report (date_, dataB64, id_agent, id_company)
-        VALUES (%s, %s, %s, %s)
-        """
-        db.execute_query(query=query, params=(date, data, id_agent, id_company,))
+class Report(Base):
+    __tablename__ = 'Report'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    date_ = Column(String(255))
+    dataB64 = Column(String)
+    id_agent = Column(Integer, ForeignKey('Agent.id_agent'))
+    id_company = Column(Integer, ForeignKey('Company.id_company'))
         
 

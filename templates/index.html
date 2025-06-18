@@ -1,5 +1,19 @@
 {% extends 'base.html' %}
 
 {% block body %}
+<div class="hero">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="DockerAudit Logo" class="hero-logo">
+    <h1 class="hero-title">Bienvenue sur DockerAudit</h1>
+    <p class="hero-subtitle">Surveillez, configurez et sécurisez vos instances Docker en toute simplicité.</p>
+    <a href="{{ url_for('login') }}" class="btn btn-primary hero-button">Se connecter</a>
+  </div>
 
+  <section class="features">
+    <h2>Fonctionnalités principales</h2>
+    <ul>
+      <li>🔍 Visualisez vos propres agents qui remontent les vulnérabilités Docker.</li>
+      <li>⚙️ Configurez vos agents à distance via une interface simple.</li>
+      <li>🔒 Toutes les données sont chiffrées : seul vous, avec votre mot de passe, pouvez déchiffrer les résultats.</li>
+    </ul>
+  </section>
 {% endblock %}

@@ -18,8 +18,6 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 api = Blueprint('api', __name__)
 
-USERS = {"user": "password123"} # TEMPS DATA BASE
-
 def token_required(f):
     """Décorateur pour exiger un JWT valide sur certaines routes."""
     @wraps(f)

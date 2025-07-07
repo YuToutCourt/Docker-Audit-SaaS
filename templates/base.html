@@ -16,6 +16,11 @@
             {% else %}
                 <a href="{{ url_for('login') }}">Login</a>
             {% endif %}
+
+            {% if session.get('is_admin') == 1 %}
+              <a href="{{ url_for('admin_panel') }}">Panel Admin</a>
+            {% endif %}
+
         </div>
         <div class="navbar-right">
             <button id="theme-toggle" class="theme-toggle">

@@ -9,3 +9,15 @@ class Agent(Base):
     health_check = Column(String(255))
     name = Column(String(255))
     id_company = Column(Integer, ForeignKey('Company.id_company'))
+    private_key = Column(String(255), nullable=True)
+
+    @classmethod
+    def add_new_agent(cls, session, priv, pub, expiration_date):
+        agent = Agent(
+            private_key=priv,
+            public_key=pub,
+            expiration_date=expiration_date,
+        )
+        session.add(ca)
+        session.commit()
+        return session.close()

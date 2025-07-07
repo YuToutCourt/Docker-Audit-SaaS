@@ -9,3 +9,4 @@ class User(Base):
     email = Column(String(255))
     enabled = Column(Integer, default=1)
     id_company = Column(Integer, ForeignKey('Company.id_company'))
+    is_admin = Column(Integer, default=0)  # 0 for user, 1 for admin

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block body %}
+  <h1>Liste des utilisateurs</h1>
+  <a href="{{ url_for('admin_create_user') }}">Créer un nouvel utilisateur</a>
+  <ul>
+    {% for user in users %}
+      <li>{{ user.username }} ({{ 'Admin' if user.is_admin else 'User' }}) - {{ user.email }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %} 

@@ -2,6 +2,7 @@
 
 {% block body %}
   <div class="dashboard-container">
+    <a href="{{ url_for('generate_certificate') }}" class="btn btn-primary" style="margin-bottom: 2rem;">+ New Certificate</a>
     <h1 class="dashboard-title">Bienvenue, {{ session.user }}</h1>
 
     {% if agents|length == 0 %}

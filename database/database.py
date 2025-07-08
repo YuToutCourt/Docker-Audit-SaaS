@@ -14,26 +14,23 @@ PORT = os.getenv("PORT")
 SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+dbo = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 class Database:
     def __init__(self):
-        self.session = SessionLocal()
+        self.session = dbo()
 
     def close(self):
         self.session.close()
 
     def login_user(self, username, password):
         from entity.user import User  # Import ici pour éviter le circular import
+        from werkzeug.security import check_password_hash
         """Retourne l'utilisateur si username/password sont corrects et enabled, sinon None."""
-        user = self.session.query(User).filter_by(username=username, password=password, enabled=1).first()
-        return user
-
-# Utilisation :
-# from database.database import SessionLocal
-# session = SessionLocal()
-# ...
-# session.close()
+        user = self.session.query(User).filter_by(username=username, enabled=1).first()
+        if user and check_password_hash(user.password, password):
+            return user
+        return None
 
     

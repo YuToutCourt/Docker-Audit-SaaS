@@ -1,5 +1,35 @@
 {% extends 'base.html' %}
+
 {% block body %}
-  <h1>Panel Admin</h1>
-  <a href="{{ url_for('admin_users') }}">Gérer les utilisateurs</a>
+<div class="admin-container">
+  <div class="admin-header">
+    <h1 class="admin-title">Espace d'administration</h1>
+    <p class="admin-subtitle">Gérez votre plateforme DockerAudit</p>
+  </div>
+
+  <div class="admin-cards">
+    <div class="admin-card">
+      <div class="card-icon">👥</div>
+      <h3>Gestion des utilisateurs</h3>
+      <p>Créez et gérez les comptes utilisateurs de votre plateforme</p>
+      <a href="{{ url_for('admin_users') }}" class="btn btn-primary card-btn">Gérer les utilisateurs</a>
+    </div>
+
+    <div class="admin-card">
+      <div class="card-icon">🏢</div>
+      <h3>Gestion des entreprises</h3>
+      <p>Créez, modifiez ou supprimez les entreprises de la plateforme</p>
+      <a href="{{ url_for('admin_companies') }}" class="btn btn-primary card-btn">Gérer les entreprises</a>
+    </div>
+
+    <div class="admin-card">
+      <div class="card-icon">⚙️</div>
+      <h3>Configuration</h3>
+      <p>Modifier les paramètres avancés de la plateforme</p>
+      <button class="btn btn-secondary card-btn" disabled>Bientôt disponible</button>
+    </div>
+
+
+  </div>
+</div>
 {% endblock %} 

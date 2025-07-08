@@ -3,39 +3,89 @@
 
 {% block body %}
   <div class="agent-detail-container">
-    <h1 class="agent-detail-title">Détails de l'agent : {{ agent.name }}</h1>
-
-    <div class="agent-info">
-      <p>
-        <strong>État :</strong>
-        <span class="agent-status">
-          <span class="{% if agent.enabled == 1 %}active-title{% else %}inactive-title{% endif %}">
-            {{ 'Actif' if agent.enabled == 1 else 'Inactif' }}
+    <div class="agent-detail-header">
+      <div class="agent-avatar">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Icône agent" />
+      </div>
+      <div class="agent-detail-main">
+        <h1 class="agent-detail-title">{{ agent.name }}</h1>
+        <div class="agent-status-row">
+          <span class="agent-status-label">État :</span>
+          <span class="agent-status">
+            <span class="{% if agent.enabled == 1 %}active-title{% else %}inactive-title{% endif %}">
+              {{ 'Actif' if agent.enabled == 1 else 'Inactif' }}
+            </span>
           </span>
-        </span>
-      </p>
-      <p><strong>Dernier scan :</strong> {{ agent.last_scan }}</p>
-      <p><strong>Prochain scan prévu :</strong> {{ agent.next_scan }}</p>
+        </div>
+        <div class="agent-meta">
+          <span><strong>Dernier scan :</strong> {{ agent.last_scan or 'Jamais' }}</span>
+          <span><strong>Prochain scan prévu :</strong> {{ agent.next_scan or 'Non planifié' }}</span>
+        </div>
+      </div>
     </div>
 
-    <h2>Configuration de l'agent</h2>
-    <form action="{{ url_for('agent', agent_id=agent.id_agent) }}" method="post" class="agent-config-form">
-      <div class="form-group">
-        <label for="next_scan">Prochain scan (jour et heure) :</label>
-        <input type="datetime-local" id="next_scan" name="next_scan" value="{% if agent.next_scan_date_ %}{{ agent.next_scan_date_.strftime('%Y-%m-%dT%H:%M') }}{% else %}{% endif %}" required>
-      </div>
-      <div class="form-group">
-        <label for="enabled">Activer l'agent :</label>
-        <input type="checkbox" id="enabled" name="enabled" {% if agent.enabled %}checked{% endif %}>
-      </div>
-      <button type="submit" class="btn btn-primary">Enregistrer</button>
-    </form>
+    <div class="agent-config-block">
+      <h2>Configuration de l'agent</h2>
+      <form action="{{ url_for('agent', agent_id=agent.id_agent) }}" method="post" class="agent-config-form">
+        <div class="form-group">
+          <label for="next_scan">Prochain scan (jour et heure) :</label>
+          <input type="datetime-local" id="next_scan" name="next_scan" value="{% if agent.next_scan_date_ %}{{ agent.next_scan_date_.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" required>
+        </div>
+        <div class="form-group">
+          <label for="enabled">Activer l'agent :</label>
+          <input type="checkbox" id="enabled" name="enabled" {% if agent.enabled %}checked{% endif %}>
+        </div>
+        <div class="form-actions">
 
-    {% if success %}
-      <p class="config-success">Configuration mise à jour avec succès.</p>
-    {% endif %}
-    {% if error %}
-      <p class="config-error">{{ error }}</p>
-    {% endif %}
+          
+          <button type="button" class="btn btn-primary" id="red-btn" onclick="openDeleteAgentModal()">
+            <span class="btn-icon">🗑️</span> Supprimer l'agent
+          </button>
+
+          <a href="{{ url_for('download_agent_certificate', agent_id=agent.id_agent) }}" class="btn btn-primary">
+            <span class="btn-icon">📄</span> Télécharger le certificat
+          </a>
+
+          <button type="submit" class="btn btn-primary">
+            <span class="btn-icon">💾</span> Enregistrer
+          </button>
+
+
+        </div>
+      </form>
+      {% if success %}
+        <p class="config-success">Configuration mise à jour avec succès.</p>
+      {% endif %}
+      {% if error %}
+        <p class="config-error">{{ error }}</p>
+      {% endif %}
+    </div>
   </div>
+
+  <!-- Modal de confirmation suppression agent -->
+  <div id="deleteAgentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Supprimer l'agent</h2>
+        <span class="close" onclick="closeDeleteAgentModal()">&times;</span>
+      </div>
+      <form method="POST" action="{{ url_for('delete_agent', agent_id=agent.id_agent) }}">
+        <div class="modal-form">
+          <p style="margin-bottom:2rem;">Voulez-vous vraiment supprimer l'agent <span style="font-weight:bold;">{{ agent.name }}</span> ?</p>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteAgentModal()">Annuler</button>
+            <button type="submit" class="btn btn-primary" style="background:#f44336;">Supprimer</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+  function openDeleteAgentModal() {
+    document.getElementById('deleteAgentModal').style.display = 'block';
+  }
+  function closeDeleteAgentModal() {
+    document.getElementById('deleteAgentModal').style.display = 'none';
+  }
+  </script>
 {% endblock %}

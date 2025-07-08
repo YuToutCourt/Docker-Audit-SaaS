@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="admin-container">
+  <div class="admin-header">
+    <h1 class="admin-title">Gestion des entreprises</h1>
+    <p class="admin-subtitle">Créez, modifiez ou supprimez les entreprises de la plateforme</p>
+  </div>
+
+  <div class="admin-actions">
+    <button class="btn btn-primary" onclick="openCreateCompanyModal()">
+      <span class="btn-icon">+</span>
+      Créer une entreprise
+    </button>
+  </div>
+
+  <div class="users-table-container">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for company in companies %}
+        <tr>
+          <td>{{ company.name }}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon-btn" title="Supprimer" type="button" onclick="openDeleteCompanyModal({{ company.id_company }}, '{{ company.name }}')">
+                <span>🗑️</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal création entreprise -->
+<div id="createCompanyModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Créer une entreprise</h2>
+      <span class="close" onclick="closeCreateCompanyModal()">&times;</span>
+    </div>
+    <form method="POST" class="modal-form">
+      <div class="form-group">
+        <label for="company_name">Nom de l'entreprise</label>
+        <input type="text" id="company_name" name="name" required placeholder="Nom de l'entreprise">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeCreateCompanyModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">Créer l'entreprise</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal suppression entreprise -->
+<div id="deleteCompanyModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Supprimer l'entreprise</h2>
+      <span class="close" onclick="closeDeleteCompanyModal()">&times;</span>
+    </div>
+    <form id="deleteCompanyForm" method="POST">
+      <div class="modal-form">
+        <p style="margin-bottom:2rem;">Voulez-vous vraiment supprimer l'entreprise <span id="deleteCompanyName" style="font-weight:bold;"></span> ?</p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeDeleteCompanyModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary" style="background:#f44336;">Supprimer</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openCreateCompanyModal() {
+    document.getElementById('createCompanyModal').style.display = 'block';
+    document.getElementById('company_name').focus();
+  }
+  function closeCreateCompanyModal() {
+    document.getElementById('createCompanyModal').style.display = 'none';
+  }
+  function openDeleteCompanyModal(id, name) {
+    document.getElementById('deleteCompanyModal').style.display = 'block';
+    document.getElementById('deleteCompanyName').textContent = name;
+    document.getElementById('deleteCompanyForm').action = '/admin/companies/delete/' + id;
+  }
+  function closeDeleteCompanyModal() {
+    document.getElementById('deleteCompanyModal').style.display = 'none';
+  }
+  // TODO: openEditCompanyModal à implémenter
+</script>
+{% endblock %} 

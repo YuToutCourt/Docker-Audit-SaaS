@@ -11,7 +11,7 @@ class Ca(Base):
 
     @classmethod
     def get_ca_from_id(cls, session, ca_id):
-        return session.query(cls).filter_by(id_ca=ca_id).first()
+        return session.query(cls).filter_by(id_ca=ca_id).first().public_key
 
     @classmethod
     def add_new_pki(cls, session, priv, pub, expiration_date):
@@ -22,4 +22,6 @@ class Ca(Base):
         )
         session.add(ca)
         session.commit()
-        return session.close()
+        ca_id = ca.id_ca
+        session.close()
+        return ca_id

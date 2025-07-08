@@ -11,13 +11,11 @@ class Validator:
         """
         Vérifie la validité des paramètres envoyés.
         """
-        # Vérification du token
+        # Vérification du token (optionnel)
         token = kwargs.get('token')
         if token is not None:
             if len(token) > 255:
                 raise ValueError("Token length is incorrect.")
-        else:
-            raise ValueError("Company agent token missing")
 
         # Vérification de la date
         date = kwargs.get('date')
@@ -44,3 +42,11 @@ class Validator:
             id_agent = kwargs.get('id_agent')
             if not id_agent or not isinstance(id_agent, int):
                 raise ValueError("ID agent is required and must be an integer")
+
+        # Vérification du name (optionnel)
+        if 'name' in kwargs:
+            name = kwargs.get('name')
+            if not name or not isinstance(name, str):
+                raise ValueError("Name is required and must be a string")
+            if len(name) > 255:
+                raise ValueError("Name length is too long (max 255 characters)")

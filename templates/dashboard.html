@@ -2,7 +2,7 @@
 
 {% block body %}
   <div class="dashboard-container">
-    <a href="{{ url_for('generate_certificate') }}" class="btn btn-primary" style="margin-bottom: 2rem;">+ New Certificate</a>
+    <button class="btn btn-primary new-agent-btn" onclick="openModal()">+ Nouvel agent</button>
     <h1 class="dashboard-title">Bienvenue, {{ session.user }}</h1>
 
     {% if agents|length == 0 %}
@@ -15,7 +15,7 @@
           <a href="/agent/{{agent.id_agent}}" class="agent-link">
             <div class="agent-container {% if agent.enabled != 1 %}inactive-container{% endif %}">
               <div class="agent-header">{{ agent.name }}</div>
-              <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Agent Icon" class="agent-img">
+              <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Icône agent" class="agent-img">
               <div class="agent-status">
                 <span class="{% if agent.enabled == 1 %}active-title{% else %}inactive-title{% endif %}">
                   {{ 'Actif' if agent.enabled == 1 else 'Inactif' }}
@@ -30,4 +30,50 @@
       </section>
     {% endif %}
   </div>
+
+  <!-- Modal pour créer un nouvel agent -->
+  <div id="agentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Créer un nouvel agent</h2>
+        <span class="close" onclick="closeModal()">&times;</span>
+      </div>
+      <form method="POST" action="{{ url_for('new_agent') }}" class="modal-form">
+        <div class="form-group">
+          <label for="agent-name">Nom de l'agent</label>
+          <input type="text" id="agent-name" name="name" placeholder="Entrez le nom de l'agent" required style="margin: auto;">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary">Créer l'agent</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal() {
+      document.getElementById('agentModal').style.display = 'block';
+      document.getElementById('agent-name').focus();
+    }
+
+    function closeModal() {
+      document.getElementById('agentModal').style.display = 'none';
+    }
+
+    // Fermer la modal en cliquant à l'extérieur
+    window.onclick = function(event) {
+      var modal = document.getElementById('agentModal');
+      if (event.target == modal) {
+        closeModal();
+      }
+    }
+
+    // Fermer la modal avec la touche Escape
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+    });
+  </script>
 {% endblock %}

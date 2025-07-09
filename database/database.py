@@ -23,14 +23,3 @@ class Database:
 
     def close(self):
         self.session.close()
-
-    def login_user(self, username, password):
-        from entity.user import User  # Import ici pour éviter le circular import
-        from werkzeug.security import check_password_hash
-        """Retourne l'utilisateur si username/password sont corrects et enabled, sinon None."""
-        user = self.session.query(User).filter_by(username=username, enabled=1).first()
-        if user and check_password_hash(user.password, password):
-            return user
-        return None
-
-    

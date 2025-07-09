@@ -19,6 +19,8 @@
       <thead>
         <tr>
           <th>Nom</th>
+          <th>Utilisateurs</th>
+          <th>Agents</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -26,6 +28,8 @@
         {% for company in companies %}
         <tr>
           <td>{{ company.name }}</td>
+          <td>{{ company_stats[company.id_company].user_count }}</td>
+          <td>{{ company_stats[company.id_company].agent_count }}</td>
           <td>
             <div class="action-buttons">
               <button class="btn-icon-btn" title="Supprimer" type="button" onclick="openDeleteCompanyModal({{ company.id_company }}, '{{ company.name }}')">
@@ -54,7 +58,7 @@
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" onclick="closeCreateCompanyModal()">Annuler</button>
-        <button type="submit" class="btn btn-primary">Créer l'entreprise</button>
+        <button type="submit" class="btn btn-primary card-btn">Créer l'entreprise</button>
       </div>
     </form>
   </div>
@@ -71,8 +75,8 @@
       <div class="modal-form">
         <p style="margin-bottom:2rem;">Voulez-vous vraiment supprimer l'entreprise <span id="deleteCompanyName" style="font-weight:bold;"></span> ?</p>
         <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" onclick="closeDeleteCompanyModal()">Annuler</button>
-          <button type="submit" class="btn btn-primary" style="background:#f44336;">Supprimer</button>
+          <button type="button" class="btn btn-secondary card-btn" onclick="closeDeleteCompanyModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary card-btn" style="background:#f44336;">Supprimer</button>
         </div>
       </div>
     </form>

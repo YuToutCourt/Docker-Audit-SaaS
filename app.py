@@ -1,25 +1,29 @@
+import base64
 import os
 from icecream import ic
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_file
 import requests
-from flask_jwt_extended import JWTManager, jwt_required
-from werkzeug.security import generate_password_hash
+from flask_jwt_extended import JWTManager
+import json
+import hashlib
+from Crypto.Cipher import AES
 
 from api.route import api
 from database.database import Database
 from entity.agent import Agent
-from entity.user import User
 from functools import wraps
-from pki.certificate_manager import generate_entreprise_pki
-from entity.company import Company
-
+from entity.report import Report
+from utils.pdf_report import create_pdf_report
+from utils.date_utils import compute_next_scans
+from admin.route import admin
 
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 app = Flask(__name__)
 app.register_blueprint(api, url_prefix='/api')
+app.register_blueprint(admin, url_prefix='/admin')
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = os.getenv("SECRET_KEY")
 jwt = JWTManager(app)
@@ -33,14 +37,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('user') or not session.get('is_admin'):
-            flash("Accès réservé à l'administration.", "error")
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
+
 
 @app.route('/')
 def index():
@@ -72,14 +69,48 @@ def agent(agent_id):
 
     if request.method == 'POST':
         try:
-            agent.next_scan_date_ = request.form.get('next_scan')
+            agent.next_scan_date_ = compute_next_scans(agent.next_scan_date_, agent.scan_interval)[0]
             agent.enabled = 1 if request.form.get('enabled') == 'on' else 0
+            # Nouveau : récupérer chaque champ
+            days = int(request.form.get('scan_days', 0))
+            hours = int(request.form.get('scan_hours', 0))
+            minutes = int(request.form.get('scan_minutes', 0))
+            # seconds = int(request.form.get('scan_seconds', 0))
+            scan_interval = days*86400 + hours*3600 + minutes*60
+            if scan_interval >= 3600:
+                agent.scan_interval = scan_interval
             db.session.commit()
             success = 'Configuration mise à jour avec succès.'
         except Exception as e:
+            ic(e)
             db.session.rollback()
             error = "Erreur lors de la mise à jour de l'agent."
-    response = render_template('agent.html', agent=agent, success=success, error=error)
+    # Calcul du prochain scan prévu et du scan suivant via utilitaire
+    prochain_scan, scan_suivant = compute_next_scans(agent.next_scan_date_, agent.scan_interval)
+    # Pour l'affichage (décomposer scan_interval)
+    scan_days = scan_hours = scan_minutes = scan_seconds = 0
+    if agent.scan_interval:
+        total = int(agent.scan_interval)
+        scan_days = total // 86400
+        total %= 86400
+        scan_hours = total // 3600
+        total %= 3600
+        scan_minutes = total // 60
+        scan_seconds = total % 60
+    reports = db.session.query(Report).filter_by(id_agent=agent_id).order_by(Report.date_.desc()).all()
+    ic(scan_suivant)
+    response = render_template(
+        'agent.html',
+        agent=agent,
+        reports=reports,
+        success=success,
+        error=error,
+        prochain_scan=prochain_scan,
+        scan_suivant=scan_suivant,
+        scan_days=scan_days,
+        scan_hours=scan_hours,
+        scan_minutes=scan_minutes
+    )
     db.close()
     return response
 
@@ -123,74 +154,7 @@ def logout():
     session.clear()
     flash('Vous avez été déconnecté.', 'info')
     return redirect(url_for('login'))
-            
-@app.route('/admin')
-@admin_required
-def admin_panel():
-    return render_template('admin_panel.html')
 
-@app.route('/admin/users')
-@admin_required
-def admin_users():
-    db = Database()
-    users = db.session.query(User).all()
-    # Récupérer tous les id_company uniques
-    company_ids = list(set([u.id_company for u in users if u.id_company]))
-    # Récupérer les sociétés
-    companies = db.session.query(Company).filter(Company.id_company.in_(company_ids)).all() if company_ids else []
-    company_names = {c.id_company: c.name for c in companies}
-    db.close()
-    return render_template('admin_users.html', users=users, company_names=company_names)
-
-@app.route('/admin/users/create', methods=['GET', 'POST'])
-@admin_required
-def admin_create_user():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        email = request.form['email']
-        id_company = request.form['id_company']
-
-        db = Database()
-        if db.session.query(User).filter_by(username=username).first():
-            db.close()
-            flash("Nom d'utilisateur déjà utilisé.", "error")
-            return redirect(url_for('admin_create_user'))
-
-        hashed_password = generate_password_hash(password)
-        user = User(
-            username=username,
-            password=hashed_password,
-            email=email,
-            enabled=1,
-            is_admin=0,  # Toujours créer des utilisateurs non-admin
-            id_company=id_company
-        )
-        db.session.add(user)
-        db.session.commit()
-        db.close()
-        flash("Utilisateur créé avec succès.", "success")
-        return redirect(url_for('admin_users'))
-    return render_template('admin_create_user.html')
-
-@app.route('/admin/users/delete/<int:user_id>', methods=['POST'])
-@admin_required
-def admin_delete_user(user_id):
-    db = Database()
-    user = db.session.query(User).filter_by(id=user_id).first()
-    if user and user.username == session.get('user'):
-        db.close()
-        flash("Vous ne pouvez pas supprimer votre propre compte.", "error")
-        return redirect(url_for('admin_users'))
-    if not user:
-        db.close()
-        flash("Utilisateur introuvable.", "error")
-        return redirect(url_for('admin_users'))
-    db.session.delete(user)
-    db.session.commit()
-    db.close()
-    flash("Utilisateur supprimé avec succès.", "success")
-    return redirect(url_for('admin_users'))
 
 @app.route('/new_agent', methods=['POST'])
 @login_required
@@ -266,43 +230,40 @@ def download_agent_certificate(agent_id):
         flash(f'Erreur lors du téléchargement du certificat: {str(e)}', 'error')
         return redirect(url_for('agent', agent_id=agent_id))
 
-@app.route('/admin/companies', methods=['GET', 'POST'])
-@admin_required
-def admin_companies():
+@app.route('/agent/<int:agent_id>/download_report/<int:id_report>', methods=['POST'])
+@login_required
+def download_agent_report(agent_id, id_report):
+    password = request.form.get('report_password')
+    if not password:
+        flash("Mot de passe requis.", "error")
+        return redirect(url_for('agent', agent_id=agent_id))
     db = Database()
-    if request.method == 'POST':
-        name = request.form.get('name')
-        if not name:
-            db.close()
-            flash("Nom requis.", "error")
-            return redirect(url_for('admin_companies'))
-        # Générer la CA pour l'entreprise
-        ca_id = generate_entreprise_pki(name)
-        # Créer l'entreprise avec la CA
-        company = Company(name=name, company_pki_id=ca_id)
-        db.session.add(company)
-        db.session.commit()
+    agent = db.session.query(Agent).filter_by(id_agent=agent_id, id_company=session['id_company']).first()
+    report = db.session.query(Report).filter_by(id_report=id_report, id_agent=agent_id).first()
+    if not agent or not report:
         db.close()
-        flash("Entreprise créée avec succès.", "success")
-        return redirect(url_for('admin_companies'))
-    companies = db.session.query(Company).all()
+        flash("Rapport ou agent introuvable.", "error")
+        return redirect(url_for('agent', agent_id=agent_id))
+    key = hashlib.sha256(password.encode()).digest()
+    iv = bytes.fromhex(report.salt)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    decrypted = cipher.decrypt(base64.b64decode(report.dataB64))
     db.close()
-    return render_template('admin_company.html', companies=companies)
-
-@app.route('/admin/companies/delete/<int:company_id>', methods=['POST'])
-@admin_required
-def admin_delete_company(company_id):
-    db = Database()
-    company = db.session.query(Company).filter_by(id_company=company_id).first()
-    if not company:
-        db.close()
-        flash("Entreprise introuvable.", "error")
-        return redirect(url_for('admin_companies'))
-    db.session.delete(company)
-    db.session.commit()
-    db.close()
-    flash("Entreprise supprimée avec succès.", "success")
-    return redirect(url_for('admin_companies'))
+    # Enlève le padding PKCS7 si besoin
+    pad_len = decrypted[-1]
+    decrypted = decrypted[:-pad_len]
+    try:
+        report_data = json.loads(decrypted.decode('utf-8'))
+    except Exception:
+        flash("Déchiffrement ou format du rapport invalide.", "error")
+        return redirect(url_for('agent', agent_id=agent_id))
+    buffer = create_pdf_report(agent.name, report.date_, report_data)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"rapport_{report.date_}.pdf",
+        mimetype='application/pdf'
+    )
 
 if  __name__ == '__main__':
     app.run(debug=True, port=80, host='0.0.0.0')

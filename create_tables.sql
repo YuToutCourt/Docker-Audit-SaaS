@@ -32,7 +32,7 @@ CREATE TABLE `Agent` (
   PRIMARY KEY (`id_agent`),
   UNIQUE KEY `Agent_UNIQUE` (`name`),
   KEY `fk_agent_company` (`id_company`),
-  CONSTRAINT `fk_agent_company` FOREIGN KEY (`id_company`) REFERENCES `Company` (`id_company`)
+  CONSTRAINT `fk_agent_company` FOREIGN KEY (`id_company`) REFERENCES `Company` (`id_company`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -88,8 +88,8 @@ CREATE TABLE `Report` (
   PRIMARY KEY (`id`),
   KEY `id_agent` (`id_agent`),
   KEY `id_company` (`id_company`),
-  CONSTRAINT `Report_ibfk_1` FOREIGN KEY (`id_agent`) REFERENCES `Agent` (`id_agent`),
-  CONSTRAINT `Report_ibfk_2` FOREIGN KEY (`id_company`) REFERENCES `Company` (`id_company`)
+  CONSTRAINT `Report_ibfk_1` FOREIGN KEY (`id_agent`) REFERENCES `Agent` (`id_agent`) ON DELETE CASCADE,
+  CONSTRAINT `Report_ibfk_2` FOREIGN KEY (`id_company`) REFERENCES `Company` (`id_company`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -118,13 +118,9 @@ CREATE TABLE `User_` (
   `id_company` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id_company` (`id_company`),
-  CONSTRAINT `User__ibfk_1` FOREIGN KEY (`id_company`) REFERENCES `Company` (`id_company`)
+  CONSTRAINT `User__ibfk_1` FOREIGN KEY (`id_company`) REFERENCES `Company` (`id_company`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
-
-
-
 
 --
 -- Dumping data for table `User_`

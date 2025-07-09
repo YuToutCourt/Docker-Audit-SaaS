@@ -755,116 +755,127 @@ input, select, textarea {
 }
 
 .modal-content {
-    background-color: var(--card-bg);
-    margin: 10% auto;
-    padding: 0;
-    border-radius: 8px;
-    width: 90%;
+    background: var(--card-bg);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px var(--shadow-color);
+    padding: 2.2rem 2rem 1.5rem 2rem;
+    color: var(--text-color);
+    position: relative;
+    min-width: 320px;
+    border: 1px solid var(--border-color);
     max-width: 500px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    margin: 2rem auto;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem;
+    padding: 0 0 1.5rem 0;
     border-bottom: 1px solid var(--border-color);
-}
-
-.modal-header h2 {
-    margin: 0;
-    color: var(--text-color);
-    font-size: 1.4rem;
-}
-
-.close {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.close:hover {
-    color: var(--text-color);
-}
-
-.modal-form {
-    padding: 1.5rem;
-}
-
-.modal-form .form-group {
     margin-bottom: 1.5rem;
 }
 
-.modal-form label {
-    display: block;
-    margin-bottom: 0.5rem;
+.modal-header h2 {
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.01em;
     color: var(--text-color);
-    font-weight: 500;
 }
 
-.modal-form input {
-    width: 100%;
+.modal-header .close {
+    position: absolute;
+    right: 1.2rem;
+    top: 1.2rem;
+    font-size: 1.5rem;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: color 0.2s;
+    opacity: 0.7;
+}
+.modal-header .close:hover {
+    color: #e74c3c;
+    opacity: 1;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.modal-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.modal-form label {
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.modal-form input,
+.modal-form select {
     padding: 0.75rem;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: 8px;
     background-color: var(--input-bg);
     color: var(--text-color);
     font-size: 1rem;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    max-width: 300px;
 }
 
-.modal-form input:focus {
+.modal-form input:focus,
+.modal-form select:focus {
     outline: none;
     border-color: #2496ed;
     box-shadow: 0 0 0 2px rgba(36, 150, 237, 0.2);
 }
 
+.modal-form input::placeholder {
+    color: var(--text-color);
+    opacity: 0.6;
+}
+
+.modal-form select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+.modal-form select option {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    padding: 0.5rem;
+}
+
 .modal-actions {
     display: flex;
-    gap: 1rem;
     justify-content: flex-end;
-    margin-top: 2rem;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
 }
 
 .modal-actions .btn {
     padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    border-radius: 8px;
     font-size: 1rem;
     font-weight: 500;
+    cursor: pointer;
     transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-}
-
-.btn-secondary {
-    background-color: var(--border-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-    background-color: var(--hover-color);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px var(--shadow-color);
+    border: none;
 }
 
 .modal-actions .btn-primary {
@@ -875,23 +886,133 @@ input, select, textarea {
 .modal-actions .btn-primary:hover {
     background-color: #1a7bc8;
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
-/* Responsive design pour la modal */
+.modal-actions .btn-secondary {
+    background-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.modal-actions .btn-secondary:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-1px);
+}
+
+/* Styles spécifiques pour les modals de confirmation */
+.modal-form p {
+    color: var(--text-color);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.modal-form span {
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+/* Styles pour les modals de téléchargement de rapports */
+.report-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.report-list li {
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 1rem 0 !important;
+}
+
+.report-list li:last-child {
+    border-bottom: none !important;
+}
+
+.report-date {
+    color: var(--text-color) !important;
+    font-weight: 500;
+}
+
+/* Styles pour le modal de mot de passe */
+.password-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: var(--input-bg);
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    border: 1.5px solid var(--border-color);
+    transition: border 0.2s;
+}
+
+.password-input-group:focus-within {
+    border: 1.5px solid #2496ed;
+}
+
+.password-lock {
+    background: linear-gradient(135deg, #2496ed 60%, #764ba2 100%);
+    color: #fff;
+    border-radius: 50%;
+    width: 2.1rem;
+    height: 2.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+#report_password {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-color);
+    font-size: 1.08rem;
+    flex: 1;
+    padding: 0.4rem 0.2rem;
+}
+
+#report_password::placeholder {
+    color: var(--text-color);
+    opacity: 0.6;
+}
+
+/* Responsive pour les modals */
 @media (max-width: 768px) {
     .modal-content {
-        margin: 5% auto;
-        width: 95%;
+        margin: 1rem;
+        max-width: calc(100% - 2rem);
+        padding: 1.5rem 1rem;
     }
     
     .modal-actions {
         flex-direction: column;
+        gap: 0.5rem;
     }
     
     .modal-actions .btn {
         width: 100%;
     }
+}
+
+#downloadReportForm {
+    gap: 1.5rem;
+}
+
+.btn-download-modern {
+    min-width: 170px;
+    font-size: 1.08rem;
+    padding: 0.7rem 1.2rem;
+    border-radius: 8px;
+}
+
+.btn.btn-secondary {
+    background: #444;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1.2rem;
+    font-size: 1.08rem;
+    transition: background 0.2s;
+}
+.btn.btn-secondary:hover {
+    background: #666;
 }
 
 /* Styles pour l'interface admin */
@@ -927,29 +1048,64 @@ input, select, textarea {
 }
 
 .admin-card {
-    background-color: var(--card-bg);
+    background: linear-gradient(145deg, var(--card-bg) 0%, rgba(255, 255, 255, 0.05) 100%);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 2rem;
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 2px 8px var(--shadow-color);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #4b78a2, #5ac9d8);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.admin-card:hover::before {
+    transform: scaleX(1);
 }
 
 .admin-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 16px var(--shadow-color);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
 }
 
 .card-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+}
+
+.admin-card:hover .card-icon {
+    transform: scale(1.1) rotate(5deg);
+    transition: all 0.3s ease;
 }
 
 .admin-card h3 {
     color: var(--text-color);
-    font-size: 1.4rem;
+    font-size: 1.5rem;
+    font-weight: 700;
     margin-bottom: 1rem;
+    background: linear-gradient(135deg, #667eea, #4b78a2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.3s ease;
+}
+
+.admin-card:hover h3 {
+    transform: translateY(-2px);
 }
 
 .admin-card p {
@@ -960,8 +1116,61 @@ input, select, textarea {
 }
 
 .card-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #4b78a2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.97rem;
+    font-weight: 600;
+    padding: 0.65rem 1.2rem;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.card-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
     width: 100%;
-    padding: 0.75rem 1.5rem;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.card-btn:hover::before {
+    left: 100%;
+}
+
+.card-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #5ac9d8 0%, #418090 100%);
+}
+
+.card-btn:active {
+    transform: translateY(-1px) scale(1.01);
+}
+
+.card-btn:disabled {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
+}
+
+.card-btn:disabled:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
 }
 
 .admin-actions {
@@ -1200,4 +1409,147 @@ input, select, textarea {
 
 a {
     text-decoration: none;
+}
+
+.btn-download-modern {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(90deg, #2496ed 60%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.5rem 1.2rem;
+  box-shadow: 0 2px 8px rgba(36, 150, 237, 0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+.btn-download-modern:hover {
+  background: linear-gradient(90deg, #1769aa 60%, #764ba2 100%);
+  box-shadow: 0 4px 16px rgba(36, 150, 237, 0.18);
+}
+.btn-download-modern .btn-icon {
+  font-size: 1.2rem;
+}
+
+/* Styles pour les formulaires d'administration */
+.form-container {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.admin-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.admin-form label {
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.admin-form input,
+.admin-form select {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.admin-form input:focus,
+.admin-form select:focus {
+    outline: none;
+    border-color: #2496ed;
+    box-shadow: 0 0 0 2px rgba(36, 150, 237, 0.2);
+}
+
+.admin-form input::placeholder {
+    color: var(--text-color);
+    opacity: 0.6;
+}
+
+.admin-form select {
+    cursor: pointer;
+}
+
+.admin-form select option {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.form-actions .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-actions .btn-primary {
+    background-color: #2496ed;
+    color: white;
+}
+
+.form-actions .btn-primary:hover {
+    background-color: #1a7bc8;
+    transform: translateY(-1px);
+}
+
+.form-actions .btn-secondary {
+    background-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.form-actions .btn-secondary:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-1px);
+}
+
+/* Responsive pour les formulaires */
+@media (max-width: 768px) {
+    .form-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
 }

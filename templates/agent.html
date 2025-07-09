@@ -18,8 +18,13 @@
           </span>
         </div>
         <div class="agent-meta">
-          <span><strong>Dernier scan :</strong> {{ agent.last_scan or 'Jamais' }}</span>
-          <span><strong>Prochain scan prévu :</strong> {{ agent.next_scan or 'Non planifié' }}</span>
+          <span><strong>Prochain Scan :</strong>
+            {% if scan_suivant %}
+              {{ scan_suivant.strftime('%Y-%m-%d %H:%M:%S') }}
+            {% else %}
+              Non planifié
+            {% endif %}
+          </span>
         </div>
       </div>
     </div>
@@ -28,8 +33,13 @@
       <h2>Configuration de l'agent</h2>
       <form action="{{ url_for('agent', agent_id=agent.id_agent) }}" method="post" class="agent-config-form">
         <div class="form-group">
-          <label for="next_scan">Prochain scan (jour et heure) :</label>
-          <input type="datetime-local" id="next_scan" name="next_scan" value="{% if agent.next_scan_date_ %}{{ agent.next_scan_date_.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" required>
+          <label>Intervalle entre les scans :</label>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="number" min="0" name="scan_days" id="scan_days" value="{{ scan_days or 0 }}" style="width: 60px;"> <span>j</span>
+            <input type="number" min="0" max="23" name="scan_hours" id="scan_hours" value="{{ scan_hours or 0 }}" style="width: 60px;"> <span>h</span>
+            <input type="number" min="0" max="59" name="scan_minutes" id="scan_minutes" value="{{ scan_minutes or 0 }}" style="width: 60px;"> <span>min</span>
+            <!-- <input type="number" min="0" max="59" name="scan_seconds" id="scan_seconds" value="{{ scan_seconds or 0 }}" style="width: 60px;"> <span>s</span> -->
+          </div>
         </div>
         <div class="form-group">
           <label for="enabled">Activer l'agent :</label>
@@ -38,15 +48,15 @@
         <div class="form-actions">
 
           
-          <button type="button" class="btn btn-primary" id="red-btn" onclick="openDeleteAgentModal()">
+          <button type="button" class="btn btn-primary card-btn" style="background:#f44336;" onclick="openDeleteAgentModal()">
             <span class="btn-icon">🗑️</span> Supprimer l'agent
           </button>
 
-          <a href="{{ url_for('download_agent_certificate', agent_id=agent.id_agent) }}" class="btn btn-primary">
+          <a href="{{ url_for('download_agent_certificate', agent_id=agent.id_agent) }}" class="btn btn-primary card-btn">
             <span class="btn-icon">📄</span> Télécharger le certificat
           </a>
 
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary card-btn">
             <span class="btn-icon">💾</span> Enregistrer
           </button>
 
@@ -73,8 +83,8 @@
         <div class="modal-form">
           <p style="margin-bottom:2rem;">Voulez-vous vraiment supprimer l'agent <span style="font-weight:bold;">{{ agent.name }}</span> ?</p>
           <div class="modal-actions">
-            <button type="button" class="btn btn-secondary" onclick="closeDeleteAgentModal()">Annuler</button>
-            <button type="submit" class="btn btn-primary" style="background:#f44336;">Supprimer</button>
+            <button type="button" class="btn btn-secondary card-btn" onclick="closeDeleteAgentModal()">Annuler</button>
+            <button type="submit" class="btn btn-primary card-btn" style="background:#f44336;">Supprimer</button>
           </div>
         </div>
       </form>
@@ -88,4 +98,70 @@
     document.getElementById('deleteAgentModal').style.display = 'none';
   }
   </script>
+
+  {% if reports and reports|length > 0 %}
+    <div class="report-download-block" style="margin:2rem 0; text-align:center;">
+      <button class="btn btn-primary card-btn" onclick="openReportModal()">📄 Télécharger un rapport</button>
+    </div>
+    <div id="reportModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Rapports disponibles</h2>
+          <span class="close" onclick="closeReportModal()">&times;</span>
+        </div>
+        <div class="modal-form">
+          <ul class="report-list" style="list-style:none; padding:0;">
+            {% for report in reports %}
+              <li style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0;border-bottom:1px solid #eee;">
+                <span class="report-date" style="font-weight:500;">🕒 {{ report.date_ }}</span>
+                <button class="btn-download-modern" onclick="openDownloadReportModal({{ report.id_report }})" title="Télécharger ce rapport">
+                  <span class="btn-icon">📥</span> Télécharger
+                </button>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!-- Modal mot de passe pour téléchargement rapport -->
+    <div id="downloadReportModal" class="modal">
+      <div class="modal-content" style="max-width: 350px;">
+        <div class="modal-header">
+          <h2 style="margin-bottom: 0.5rem;">Déchiffrer le rapport</h2>
+          <span class="close" onclick="closeDownloadReportModal()">&times;</span>
+        </div>
+        <form id="downloadReportForm" method="POST" style="display: flex; flex-direction: column; gap: 1.2rem;">
+          <div class="password-input-group">
+            <span class="password-lock">🔒</span>
+            <input type="password" name="report_password" id="report_password" required placeholder="Votre mot de passe">
+          </div>
+          <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="closeDownloadReportModal()">Annuler</button>
+            <button type="submit" class="btn-download-modern">Déchiffrer & Télécharger</button>
+          </div>
+          <input type="hidden" name="report_id" id="modal_report_id">
+        </form>
+      </div>
+    </div>
+    <script>
+      function openReportModal() {
+        document.getElementById('reportModal').style.display = 'block';
+      }
+      function closeReportModal() {
+        document.getElementById('reportModal').style.display = 'none';
+      }
+      function openDownloadReportModal(reportId) {
+        document.getElementById('modal_report_id').value = reportId;
+        document.getElementById('downloadReportModal').style.display = 'block';
+        document.getElementById('report_password').value = '';
+        document.getElementById('report_password').focus();
+        // Fixer l'action du formulaire
+        var agentId = {{ agent.id_agent }};
+        document.getElementById('downloadReportForm').action = '/agent/' + agentId + '/download_report/' + reportId;
+      }
+      function closeDownloadReportModal() {
+        document.getElementById('downloadReportModal').style.display = 'none';
+      }
+    </script>
+  {% endif %}
 {% endblock %}

@@ -10,15 +10,19 @@
 <body>
     <div class="navbar">
         <div>
-            <a href="{{ url_for('dashboard') if session.get('user') else url_for('index') }}">Accueil</a>
+            {% if not session.get('user') %}
+                <a href="{{ url_for('index') }}">Accueil</a>
+            {% endif %}
+            
             {% if session.get('user') %}
+                <a href="{{ url_for('dashboard') }}">Tableau de bord</a>
                 <a href="{{ url_for('logout') }}">Déconnexion</a>
             {% else %}
                 <a href="{{ url_for('login') }}">Connexion</a>
             {% endif %}
 
             {% if session.get('is_admin') == 1 %}
-              <a href="{{ url_for('admin_panel') }}">Administration</a>
+              <a href="{{ url_for('admin.admin_panel') }}">Administration</a>
             {% endif %}
 
         </div>

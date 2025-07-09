@@ -26,17 +26,15 @@ def generate_entreprise_pki(name):
     )
 
     company_ca = Ca()
-    dbo_session = dbo()
     public_key = ca_cert.public_bytes(serialization.Encoding.PEM)
     private_key = ca_key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.TraditionalOpenSSL, serialization.NoEncryption())
     expiration_date = ca_cert.not_valid_after_utc
-    ca_id = company_ca.add_new_pki(dbo_session, private_key.decode("utf-8"), public_key.decode("utf-8"), expiration_date)
+    ca_id = company_ca.add_new_pki(private_key.decode("utf-8"), public_key.decode("utf-8"), expiration_date)
     return ca_id  # <-- AJOUTER CE RETURN
 
 
 def generate_agent_pki(company_id, agent_name):
-    dbo_session = dbo()
-    ca_id = Company.get_ca_id_from_company_id(dbo_session, company_id).company_pki_id
+    ca_id = Company.get_ca_id_from_company_id(company_id).company_pki_id
 
     # 1. Générer une clé pour l’agent
     agent_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -51,7 +49,7 @@ def generate_agent_pki(company_id, agent_name):
         .sign(agent_key, hashes.SHA256())
     )
 
-    ca_data = Ca.get_ca_from_id(dbo_session, ca_id)
+    ca_data = Ca.get_ca_from_id(ca_id)
 
     # 3. Charger la clé + cert CA
     pem_data = ca_data.public_key.encode()
@@ -103,7 +101,7 @@ def verify_certificate(cert_pem_str:bytes , ca_cert_pem_str: bytes):
         if basic_constraints.ca:
             return False
 
-        print("Certificat valide et signé par la CA.")
+        print(">>>>>> Certificat valide et signé par la CA <<<<<<<<")
         return True
 
     except Exception as e:

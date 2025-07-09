@@ -1,0 +1,1 @@
+api = Blueprint('api', __name__)

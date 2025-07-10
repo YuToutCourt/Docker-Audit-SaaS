@@ -18,10 +18,12 @@ class User(Base):
             session.add(self)
             session.commit()
             session.close()
+            return True
         except Exception as e:
             ic(e)
             session.rollback()
             session.close()
+            return False
 
     @classmethod
     def delete_user_by_id(cls, id_user):
@@ -65,4 +67,25 @@ class User(Base):
     @classmethod
     def get_count_user_by_id_company(cls, id_company):
         return dbo().query(cls).filter_by(id_company=id_company).count()
+
+    @classmethod
+    def get_by_username(cls, username):
+        """Récupérer un utilisateur par son nom d'utilisateur"""
+        return dbo().query(cls).filter_by(username=username).first()
+
+    @classmethod
+    def get_all(cls):
+        """Récupérer tous les utilisateurs"""
+        return dbo().query(cls).all()
+
+    def to_dict(self):
+        """Convertir l'objet en dictionnaire"""
+        return {
+            'id_user': self.id_user,
+            'username': self.username,
+            'email': self.email,
+            'enabled': self.enabled,
+            'id_company': self.id_company,
+            'is_admin': self.is_admin
+        }
 

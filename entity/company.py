@@ -82,3 +82,16 @@ class Company(Base):
             session.rollback()
             session.close()
             return False
+
+    @classmethod
+    def get_all(cls):
+        """Récupérer toutes les entreprises"""
+        return dbo().query(cls).all()
+
+    def to_dict(self):
+        """Convertir l'objet en dictionnaire"""
+        return {
+            'id_company': self.id_company,
+            'name': self.name,
+            'company_pki_id': self.company_pki_id
+        }

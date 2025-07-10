@@ -26,3 +26,33 @@ class Report(Base):
         id_report = report.id_report
         session.close()
         return id_report
+
+    @classmethod
+    def get_by_agent_and_company(cls, agent_id, company_id):
+        """Récupérer les rapports d'un agent et d'une entreprise"""
+        return dbo().query(cls).filter_by(id_agent=agent_id, id_company=company_id).all()
+
+    @classmethod
+    def get_by_company(cls, company_id):
+        """Récupérer tous les rapports d'une entreprise"""
+        return dbo().query(cls).filter_by(id_company=company_id).all()
+
+    @classmethod
+    def get_by_id_and_agent_and_company(cls, report_id, agent_id, company_id):
+        """Récupérer un rapport par ID, agent et entreprise"""
+        return dbo().query(cls).filter_by(id_report=report_id, id_agent=agent_id, id_company=company_id).first()
+
+    @classmethod
+    def get_all(cls):
+        """Récupérer tous les rapports"""
+        return dbo().query(cls).all()
+
+    def to_dict(self):
+        """Convertir l'objet en dictionnaire"""
+        return {
+            'id_report': self.id_report,
+            'date_': self.date_,
+            'id_agent': self.id_agent,
+            'id_company': self.id_company,
+            'salt': self.salt
+        }

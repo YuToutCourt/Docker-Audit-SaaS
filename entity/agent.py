@@ -69,3 +69,68 @@ class Agent(Base):
     @classmethod
     def get_count_agent_by_id_company(cls, id_company):
         return dbo().query(cls).filter_by(id_company=id_company).count()
+
+    @classmethod
+    def get_by_company(cls, company_id):
+        """Récupérer tous les agents d'une entreprise"""
+        return dbo().query(cls).filter_by(id_company=company_id).all()
+
+    @classmethod
+    def get_by_id_and_company(cls, agent_id, company_id):
+        """Récupérer un agent par ID et entreprise"""
+        return dbo().query(cls).filter_by(id_agent=agent_id, id_company=company_id).first()
+
+    @classmethod
+    def get_all(cls):
+        """Récupérer tous les agents"""
+        return dbo().query(cls).all()
+
+
+
+    @classmethod
+    def get_by_id(cls, agent_id):
+        return dbo().query(cls).filter_by(id_agent=agent_id).first()
+
+    def update(self):
+        """Mettre à jour l'agent"""
+        session = dbo()
+        try:
+            session.merge(self)
+            session.commit()
+            session.close()
+            return True
+        except Exception as e:
+            ic(e)
+            session.rollback()
+            session.close()
+            return False
+
+    def delete(self):
+        """Supprimer l'agent"""
+        session = dbo()
+        try:
+            session.delete(self)
+            session.commit()
+            session.close()
+            return True
+        except Exception as e:
+            ic(e)
+            session.rollback()
+            session.close()
+            return False
+
+    def to_dict(self):
+        """Convertir l'objet en dictionnaire"""
+        return {
+            'id_agent': self.id_agent,
+            'name': self.name,
+            'enabled': self.enabled,
+            'health_check': self.health_check,
+            'next_scan_date_': self.next_scan_date_,
+            'id_company': self.id_company,
+            'scan_interval': self.scan_interval,
+            'public_key': self.public_key,
+            'private_key': self.private_key,
+            'id_ca': self.id_ca
+        }
+

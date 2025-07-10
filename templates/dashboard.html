@@ -12,7 +12,7 @@
     {% else %}
       <section class="agent-box">
         {% for agent in agents %}
-          <a href="/agent/{{agent.id_agent}}" class="agent-link">
+          <a href="{{ url_for('web_agent.agent_detail', agent_id=agent.id_agent) }}" class="agent-link">
             <div class="agent-container {% if agent.enabled != 1 %}inactive-container{% endif %}">
               <div class="agent-header">{{ agent.name }}</div>
               <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Icône agent" class="agent-img">
@@ -22,7 +22,7 @@
                 </span>
               </div>
               <div class="agent-footer">
-                Dernier scan : {{ agent.next_scan_date_ or 'Jamais' }}
+                Prochain scan : {{ agent.next_scan_date_ or 'Jamais' }}
               </div>
             </div>
           </a>
@@ -38,7 +38,7 @@
         <h2>Créer un nouvel agent</h2>
         <span class="close" onclick="closeModal()">&times;</span>
       </div>
-      <form method="POST" action="{{ url_for('new_agent') }}" class="modal-form">
+      <form method="POST" action="{{ url_for('main.new_agent') }}" class="modal-form">
         <div class="form-group">
           <label for="agent-name">Nom de l'agent</label>
           <input type="text" id="agent-name" name="name" placeholder="Entrez le nom de l'agent" required style="margin: auto;">

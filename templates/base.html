@@ -11,18 +11,18 @@
     <div class="navbar">
         <div>
             {% if not session.get('user') %}
-                <a href="{{ url_for('index') }}">Accueil</a>
+                <a href="{{ url_for('main.index') }}">Accueil</a>
             {% endif %}
             
             {% if session.get('user') %}
-                <a href="{{ url_for('dashboard') }}">Tableau de bord</a>
-                <a href="{{ url_for('logout') }}">Déconnexion</a>
+                <a href="{{ url_for('main.dashboard') }}">Tableau de bord</a>
+                <a href="{{ url_for('main.logout') }}">Déconnexion</a>
             {% else %}
-                <a href="{{ url_for('login') }}">Connexion</a>
+                <a href="{{ url_for('main.login') }}">Connexion</a>
             {% endif %}
 
             {% if session.get('is_admin') == 1 %}
-              <a href="{{ url_for('admin.admin_panel') }}">Administration</a>
+              <a href="{{ url_for('web_admin.admin_dashboard') }}">Administration</a>
             {% endif %}
 
         </div>

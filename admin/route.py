@@ -42,7 +42,7 @@ def admin_create_user():
     username = request.form['username']
     password = request.form['password']
     email = request.form['email']
-    id_company = request.form['id_company']
+    id_company = int(request.form['id_company'])
     if User.check_if_user_exist_by_username(username):
         flash("Nom d'utilisateur déjà utilisé.", "error")
         return redirect(url_for('admin.admin_create_user'))

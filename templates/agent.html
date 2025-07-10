@@ -20,7 +20,7 @@
         <div class="agent-meta">
           <span><strong>Prochain Scan :</strong>
             {% if scan_suivant %}
-              {{ scan_suivant.strftime('%Y-%m-%d %H:%M:%S') }}
+              {{ scan_suivant }}
             {% else %}
               Non planifié
             {% endif %}
@@ -31,7 +31,7 @@
 
     <div class="agent-config-block">
       <h2>Configuration de l'agent</h2>
-      <form action="{{ url_for('agent', agent_id=agent.id_agent) }}" method="post" class="agent-config-form">
+      <form action="{{ url_for('web_agent.agent_detail', agent_id=agent.id_agent) }}" method="post" class="agent-config-form">
         <div class="form-group">
           <label>Intervalle entre les scans :</label>
           <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -52,7 +52,7 @@
             <span class="btn-icon">🗑️</span> Supprimer l'agent
           </button>
 
-          <a href="{{ url_for('download_agent_certificate', agent_id=agent.id_agent) }}" class="btn btn-primary card-btn">
+          <a href="{{ url_for('web_agent.download_agent_certificate', agent_id=agent.id_agent) }}" class="btn btn-primary card-btn">
             <span class="btn-icon">📄</span> Télécharger le certificat
           </a>
 
@@ -79,7 +79,7 @@
         <h2>Supprimer l'agent</h2>
         <span class="close" onclick="closeDeleteAgentModal()">&times;</span>
       </div>
-      <form method="POST" action="{{ url_for('delete_agent', agent_id=agent.id_agent) }}">
+      <form method="POST" action="{{ url_for('web_agent.delete_agent', agent_id=agent.id_agent) }}">
         <div class="modal-form">
           <p style="margin-bottom:2rem;">Voulez-vous vraiment supprimer l'agent <span style="font-weight:bold;">{{ agent.name }}</span> ?</p>
           <div class="modal-actions">
@@ -104,22 +104,18 @@
       <button class="btn btn-primary card-btn" onclick="openReportModal()">📄 Télécharger un rapport</button>
     </div>
     <div id="reportModal" class="modal">
-      <div class="modal-content">
+      <div class="modal-content" style="max-width: 900px; max-height: 100vh; overflow-y: auto;">
         <div class="modal-header">
           <h2>Rapports disponibles</h2>
           <span class="close" onclick="closeReportModal()">&times;</span>
         </div>
         <div class="modal-form">
-          <ul class="report-list" style="list-style:none; padding:0;">
-            {% for report in reports %}
-              <li style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0;border-bottom:1px solid #eee;">
-                <span class="report-date" style="font-weight:500;">🕒 {{ report.date_ }}</span>
-                <button class="btn-download-modern" onclick="openDownloadReportModal({{ report.id_report }})" title="Télécharger ce rapport">
-                  <span class="btn-icon">📥</span> Télécharger
-                </button>
-              </li>
-            {% endfor %}
-          </ul>
+          <ul id="report-list" class="report-list" style="list-style:none; padding:0;"></ul>
+          <div class="pagination-controls" style="display:flex;justify-content:center;align-items:center;gap:1.5rem;margin-top:1rem;">
+            <button id="prev-page" class="btn btn-secondary" disabled>Précédent</button>
+            <span id="page-info"></span>
+            <button id="next-page" class="btn btn-secondary">Suivant</button>
+          </div>
         </div>
       </div>
     </div>
@@ -162,6 +158,36 @@
       function closeDownloadReportModal() {
         document.getElementById('downloadReportModal').style.display = 'none';
       }
+
+      // Pagination JS pour les rapports
+      const reports = {{ reports|tojson }};
+      let currentPage = 1;
+      const perPage = 4;
+      function renderReports() {
+        const start = (currentPage - 1) * perPage;
+        const end = start + perPage;
+        const pageReports = reports.slice(start, end);
+        let html = '';
+        pageReports.forEach(r => {
+          html += `<li style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0;border-bottom:1px solid #eee;">
+            <span class="report-date" style="font-weight:500;">🕒 ${r.date_}</span>
+            <button class="btn-download-modern" onclick="openDownloadReportModal(${r.id_report})" title="Télécharger ce rapport">
+              <span class="btn-icon">📥</span> Télécharger
+            </button>
+          </li>`;
+        });
+        document.getElementById('report-list').innerHTML = html;
+        document.getElementById('page-info').textContent = `Page ${currentPage} / ${Math.ceil(reports.length / perPage)}`;
+        document.getElementById('prev-page').disabled = currentPage === 1;
+        document.getElementById('next-page').disabled = end >= reports.length;
+      }
+      document.getElementById('prev-page').onclick = function() {
+        if (currentPage > 1) { currentPage--; renderReports(); }
+      };
+      document.getElementById('next-page').onclick = function() {
+        if (currentPage * perPage < reports.length) { currentPage++; renderReports(); }
+      };
+      renderReports();
     </script>
   {% endif %}
 {% endblock %}

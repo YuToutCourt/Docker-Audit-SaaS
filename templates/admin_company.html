@@ -94,7 +94,7 @@
   function openDeleteCompanyModal(id, name) {
     document.getElementById('deleteCompanyModal').style.display = 'block';
     document.getElementById('deleteCompanyName').textContent = name;
-    document.getElementById('deleteCompanyForm').action = '/admin/companies/delete/' + id;
+    document.getElementById('deleteCompanyForm').action = '/admin/admin/companies/' + id + '/delete';
   }
   function closeDeleteCompanyModal() {
     document.getElementById('deleteCompanyModal').style.display = 'none';

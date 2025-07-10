@@ -72,7 +72,7 @@
       <h2>Créer un nouvel utilisateur</h2>
       <span class="close" onclick="closeCreateUserModal()">&times;</span>
     </div>
-    <form method="POST" action="{{ url_for('admin.admin_create_user') }}" class="modal-form">
+    <form method="POST" action="{{ url_for('web_admin.admin_create_user') }}" class="modal-form">
       <div class="form-group">
         <label for="username">Nom d'utilisateur</label>
         <input type="text" id="username" name="username" required placeholder="Nom d'utilisateur">
@@ -134,7 +134,7 @@
   function openDeleteUserModal(userId, username) {
     document.getElementById('deleteUserModal').style.display = 'block';
     document.getElementById('deleteUserName').textContent = username;
-    document.getElementById('deleteUserForm').action = '/admin/users/delete/' + userId;
+    document.getElementById('deleteUserForm').action = '/admin/admin/users/' + userId + '/delete';
   }
 
   function closeDeleteUserModal() {

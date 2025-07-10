@@ -50,3 +50,10 @@ class Ca(Base):
             session.rollback()
             session.close()
             return False
+
+    @classmethod
+    def get_by_company(cls, company_id):
+        """Récupérer la CA d'une entreprise"""
+        # Cette méthode nécessite une jointure avec Company
+        # Pour l'instant, retourner None
+        return None

@@ -19,10 +19,17 @@ class AuthService:
         if not username or not password:
             return None
             
-        user = User.get_by_username(username)
-        if user and check_password_hash(user.password, password):
-            return user
-        return None
+        # Utiliser login_user qui vérifie le statut enabled=1
+        user = User.login_user(username, password)
+        
+        # Vérifier aussi que l'entreprise de l'utilisateur est active
+        if user:
+            from entity.company import Company
+            company = Company.get_company_by_id(user.id_company)
+            if company and company.enabled == 0:
+                return None  # Entreprise désactivée
+        
+        return user
     
     @staticmethod
     def create_user(username, password, company_id, email=None, is_admin=False):

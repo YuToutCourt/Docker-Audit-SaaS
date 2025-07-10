@@ -16,6 +16,12 @@ class AgentService:
             list: Liste des agents
         """
         try:
+            # Vérifier d'abord que l'entreprise est active
+            from entity.company import Company
+            company = Company.get_company_by_id(company_id)
+            if not company or company.enabled == 0:
+                return []  # Entreprise désactivée ou inexistante
+            
             agents = Agent.get_by_company(company_id)
             return [agent.to_dict() for agent in agents]
         except Exception as e:

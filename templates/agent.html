@@ -126,7 +126,7 @@
           <h2 style="margin-bottom: 0.5rem;">Déchiffrer le rapport</h2>
           <span class="close" onclick="closeDownloadReportModal()">&times;</span>
         </div>
-        <form id="downloadReportForm" method="POST" style="display: flex; flex-direction: column; gap: 1.2rem;">
+        <form id="downloadReportForm" method="POST" style="display: flex; flex-direction: column; gap: 1.2rem;" onsubmit="handleDownloadSubmit(event)">
           <div class="password-input-group">
             <span class="password-lock">🔒</span>
             <input type="password" name="report_password" id="report_password" required placeholder="Votre mot de passe">
@@ -159,18 +159,67 @@
         document.getElementById('downloadReportModal').style.display = 'none';
       }
 
+      function handleDownloadSubmit(event) {
+        // Fermer le modal immédiatement après la soumission
+        closeDownloadReportModal();
+        // Le formulaire continuera sa soumission normale
+      }
+
       // Pagination JS pour les rapports
       const reports = {{ reports|tojson }};
       let currentPage = 1;
       const perPage = 4;
+      
+      // Fonction pour formater la date en français
+      function formatDateFrench(dateString) {
+        try {
+          // Gérer différents formats de date possibles
+          let date;
+          if (typeof dateString === 'string') {
+            // Essayer différents formats
+            if (dateString.includes('T')) {
+              // Format ISO
+              date = new Date(dateString);
+            } else if (dateString.includes('-')) {
+              // Format YYYY-MM-DD HH:MM:SS
+              date = new Date(dateString.replace(' ', 'T'));
+            } else {
+              // Autres formats
+              date = new Date(dateString);
+            }
+          } else {
+            date = new Date(dateString);
+          }
+          
+          // Vérifier si la date est valide
+          if (isNaN(date.getTime())) {
+            return dateString; // Retourner la chaîne originale si la date est invalide
+          }
+          
+          const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'UTC'
+          };
+          return date.toLocaleDateString('fr-FR', options);
+        } catch (error) {
+          // En cas d'erreur, retourner la chaîne originale
+          return dateString;
+        }
+      }
+      
       function renderReports() {
         const start = (currentPage - 1) * perPage;
         const end = start + perPage;
         const pageReports = reports.slice(start, end);
         let html = '';
         pageReports.forEach(r => {
+          const formattedDate = formatDateFrench(r.date_);
           html += `<li style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0;border-bottom:1px solid #eee;">
-            <span class="report-date" style="font-weight:500;">🕒 ${r.date_}</span>
+            <span class="report-date" style="font-weight:500;">🕒 ${formattedDate}</span>
             <button class="btn-download-modern" onclick="openDownloadReportModal(${r.id_report})" title="Télécharger ce rapport">
               <span class="btn-icon">📥</span> Télécharger
             </button>

@@ -8,6 +8,8 @@ class Company(Base):
     id_company = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
     company_pki_id = Column(Integer, ForeignKey('CA.id_ca', ondelete='CASCADE'), nullable=False )
+    enabled = Column(Integer, default=1)
+
 
     def add(self):
         session = dbo() 
@@ -93,5 +95,19 @@ class Company(Base):
         return {
             'id_company': self.id_company,
             'name': self.name,
-            'company_pki_id': self.company_pki_id
+            'company_pki_id': self.company_pki_id,
+            'enabled': self.enabled
         }
+
+    def update(self):
+        session = dbo()
+        try:
+            session.merge(self)
+            session.commit()
+            session.close()
+            return True
+        except Exception as e:
+            ic(e)
+            session.rollback()
+            session.close()
+            return False

@@ -25,6 +25,19 @@ class User(Base):
             session.close()
             return False
 
+    def update(self):
+        session = dbo()
+        try:
+            session.merge(self)
+            session.commit()
+            session.close()
+            return True
+        except Exception as e:
+            ic(e)
+            session.rollback()
+            session.close()
+            return False
+
     @classmethod
     def delete_user_by_id(cls, id_user):
         session = dbo()

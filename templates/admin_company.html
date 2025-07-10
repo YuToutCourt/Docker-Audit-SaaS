@@ -21,6 +21,7 @@
           <th>Nom</th>
           <th>Utilisateurs</th>
           <th>Agents</th>
+          <th>Statut</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -31,7 +32,17 @@
           <td>{{ company_stats[company.id_company].user_count }}</td>
           <td>{{ company_stats[company.id_company].agent_count }}</td>
           <td>
+            <span class="status-badge {% if company.enabled %}active{% else %}inactive{% endif %}">
+              {{ 'Actif' if company.enabled else 'Inactif' }}
+            </span>
+          </td>
+          <td>
             <div class="action-buttons">
+              <form method="POST" action="{{ url_for('web_admin.admin_toggle_company', company_id=company.id_company) }}" style="display:inline;">
+                <button type="submit" class="btn-icon-btn" title="{{ 'Désactiver' if company.enabled else 'Activer' }}">
+                  <span>{% if company.enabled %}🚫{% else %}✅{% endif %}</span>
+                </button>
+              </form>
               <button class="btn-icon-btn" title="Supprimer" type="button" onclick="openDeleteCompanyModal({{ company.id_company }}, '{{ company.name }}')">
                 <span>🗑️</span>
               </button>

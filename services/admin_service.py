@@ -143,3 +143,46 @@ class AdminService:
                 "total_agents": 0,
                 "total_reports": 0
             } 
+
+    @staticmethod
+    def toggle_user_enabled(user_id):
+        try:
+            user = User.get_user_by_id(user_id)
+            if not user:
+                return False
+            user.enabled = 0 if user.enabled else 1
+            return user.update()
+        except Exception as e:
+            print(f"Erreur activation/désactivation utilisateur: {e}")
+            return False 
+
+    @staticmethod
+    def toggle_company_enabled(company_id):
+        try:
+            company = Company.get_company_by_id(company_id)
+            if not company:
+                return False
+            
+            # Toggle le statut de l'entreprise
+            company.enabled = 0 if company.enabled else 1
+            
+            # Cascade sur les utilisateurs de cette entreprise
+            from entity.user import User
+            users = User.get_all()
+            for user in users:
+                if user.id_company == company_id:
+                    user.enabled = company.enabled
+                    user.update()
+            
+            # Cascade sur les agents de cette entreprise
+            from entity.agent import Agent
+            agents = Agent.get_all()
+            for agent in agents:
+                if agent.id_company == company_id:
+                    agent.enabled = company.enabled
+                    agent.update()
+            
+            return company.update()
+        except Exception as e:
+            print(f"Erreur activation/désactivation entreprise: {e}")
+            return False 

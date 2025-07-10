@@ -63,27 +63,123 @@ tr:nth-child(even) td {
 tr:nth-child(odd) td {
   background: #fff;
 }
+
+/* Nouveaux tableaux de sécurité */
+.security-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 2em;
+  font-size: 1.08em;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.security-table thead th {
+  background: #2c3e50;
+  color: #fff;
+  font-size: 1.15em;
+  font-weight: 600;
+  padding: 1em 1.2em;
+  text-align: left;
+}
+
+.security-table tbody tr:nth-child(even) td {
+  background: #f8f9fa;
+}
+
+.security-table tbody tr:nth-child(odd) td {
+  background: #fff;
+}
+
+.security-table td {
+  border: 1px solid #e9ecef;
+  padding: 0.8em 1.2em;
+  text-align: left;
+  vertical-align: top;
+}
+
+.verification-name {
+  font-weight: 600;
+  color: #2c3e50;
+  width: 25%;
+}
+
+.detail {
+  color: #6c757d;
+  font-size: 0.95em;
+  width: 45%;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 3em;
+  page-break-inside: avoid;
+}
+
+.container-info {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.8em 1.2em;
+  border-radius: 6px;
+  margin-bottom: 1em;
+  font-weight: 500;
+  font-size: 0.95em;
+}
+
 /* Statut coloré */
-td.status-ok, .status-ok {
+td.status-ok {
   background: #27ae60 !important;
   color: #fff;
   font-weight: bold;
+  border-radius: 0;
+  padding: 0.7em 0;
+  text-align: center;
+  vertical-align: middle;
+
+  width: 1%;
 }
-td.status-ko, .status-ko {
+td.status-ko {
   background: #e74c3c !important;
   color: #fff;
   font-weight: bold;
+  border-radius: 0;
+  padding: 0.7em 0;
+  text-align: center;
+  vertical-align: middle;
+
+  width: 1%;
 }
-td.status-skipped, .status-skipped {
+td.status-skipped {
   background: #f39c12 !important;
   color: #fff;
   font-weight: bold;
+  border-radius: 0;
+  padding: 0.7em 0;
+  text-align: center;
+  vertical-align: middle;
+
+  width: 1%;
 }
-td.status-info, .status-info {
+td.status-info {
   background: #2496ed !important;
   color: #fff;
   font-weight: bold;
+  border-radius: 0;
+  padding: 0.7em 0;
+  text-align: center;
+  vertical-align: middle;
+
+  width: 1%;
 }
+
+.status-ok, .status-ko, .status-skipped, .status-info {
+  display: unset;
+  padding: 0;
+  border-radius: 0;
+  white-space: normal;
+}
+
 
 /* Titres de section */
 h2, h3 {
@@ -93,14 +189,13 @@ h2, h3 {
   text-align: left;
 }
 
-.legend span.status-ok,
-.legend span.status-ko,
-.legend span.status-skipped,
-.legend span.status-info {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  margin-right: 6px;
-  vertical-align: middle;
+h2 {
+  font-size: 1.8em;
+  border-bottom: 3px solid #2496ed;
+  padding-bottom: 0.3em;
+}
+
+h3 {
+  font-size: 1.4em;
+  color: #2c3e50;
 }

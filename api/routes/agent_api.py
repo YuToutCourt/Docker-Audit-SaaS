@@ -69,12 +69,13 @@ def get_agent_info():
     try:
         json_data = request.get_json()
         cert_pem = json_data.get("cert").encode("utf-8")
+
         if not cert_pem:
             return jsonify({"message": "Missing certificate"}), 403
 
         agent = Agent.get_agent_from_cert(cert_pem)
         if not agent:
-            return jsonify({"message": "Agent not found"}), 404
+            return jsonify({"message": "Unauthorized"}), 401
             
         # Charger le certificat PEM
         id_ca = agent.id_ca

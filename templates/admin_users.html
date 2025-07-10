@@ -52,6 +52,11 @@
           <td>
             <div class="action-buttons">
               {% if user.username != session.user %}
+                <form method="POST" action="{{ url_for('web_admin.admin_toggle_user', user_id=user.id_user) }}" style="display:inline;">
+                  <button type="submit" class="btn-icon-btn" title="{{ 'Désactiver' if user.enabled else 'Activer' }}">
+                    <span>{% if user.enabled %}🚫{% else %}✅{% endif %}</span>
+                  </button>
+                </form>
                 <button class="btn-icon-btn" title="Supprimer l'utilisateur" type="button" onclick="openDeleteUserModal({{ user.id_user }}, '{{ user.username }}')">
                   <span>🗑️</span>
                 </button>

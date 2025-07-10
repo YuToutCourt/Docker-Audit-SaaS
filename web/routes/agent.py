@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_file, session
 from services.agent_service import AgentService
 from utils.date_utils import compute_next_scans
-from utils.pdf_report import create_pdf_report
 import base64
 import hashlib
 import json
@@ -90,7 +89,7 @@ def agent_detail(agent_id):
     
     reports = sorted(reports, key=lambda r: r['date_'] if isinstance(r, dict) else r.date_, reverse=True)
 
-    str_scan_suivant = agent_obj.next_scan_date_.strftime('%Y-%m-%d %H:%M:%S')
+    str_scan_suivant = agent_obj.next_scan_date_ if agent_obj.next_scan_date_ else "Non planifié"
 
     return render_template(
         'agent.html',

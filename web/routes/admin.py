@@ -70,6 +70,17 @@ def admin_delete_user(user_id):
     
     return redirect(url_for("web_admin.admin_users"))
 
+@admin_bp.route("/admin/users/<int:user_id>/toggle", methods=["POST"])
+@admin_required
+def admin_toggle_user(user_id):
+    """Activer/désactiver un utilisateur"""
+    success = AdminService.toggle_user_enabled(user_id)
+    if success:
+        flash("Statut de l'utilisateur modifié.", "success")
+    else:
+        flash("Erreur lors du changement de statut.", "error")
+    return redirect(url_for("web_admin.admin_users"))
+
 @admin_bp.route("/admin/companies")
 @admin_required
 def admin_companies():
@@ -120,4 +131,15 @@ def admin_delete_company(company_id):
     else:
         flash("Erreur lors de la suppression de l'entreprise", "error")
     
+    return redirect(url_for("web_admin.admin_companies")) 
+
+@admin_bp.route("/admin/companies/<int:company_id>/toggle", methods=["POST"])
+@admin_required
+def admin_toggle_company(company_id):
+    """Activer/désactiver une entreprise (avec cascade sur utilisateurs et agents)"""
+    success = AdminService.toggle_company_enabled(company_id)
+    if success:
+        flash("Statut de l'entreprise modifié avec cascade sur les utilisateurs et agents.", "success")
+    else:
+        flash("Erreur lors du changement de statut de l'entreprise.", "error")
     return redirect(url_for("web_admin.admin_companies")) 

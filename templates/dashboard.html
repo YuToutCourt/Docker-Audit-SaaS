@@ -39,6 +39,7 @@
         <span class="close" onclick="closeModal()">&times;</span>
       </div>
       <form method="POST" action="{{ url_for('main.new_agent') }}" class="modal-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div class="form-group">
           <label for="agent-name">Nom de l'agent</label>
           <input type="text" id="agent-name" name="name" placeholder="Entrez le nom de l'agent" required style="margin: auto;">

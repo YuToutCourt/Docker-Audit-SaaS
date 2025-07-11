@@ -55,7 +55,7 @@ def send_data():
                 agent.update()  # Sauvegarde la nouvelle date dans la BDD
             except Exception as e:
                 ic(f'Erreur mise à jour next_scan_date_: {e}')
-            return jsonify({"message": "success"}), 200
+            return jsonify({"message": "success"}), 201
         else:
             return jsonify({"message": "Invalid certificate"}), 403
 

@@ -53,6 +53,7 @@
             <div class="action-buttons">
               {% if user.username != session.user %}
                 <form method="POST" action="{{ url_for('web_admin.admin_toggle_user', user_id=user.id_user) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                   <button type="submit" class="btn-icon-btn" title="{{ 'Désactiver' if user.enabled else 'Activer' }}">
                     <span>{% if user.enabled %}🚫{% else %}✅{% endif %}</span>
                   </button>
@@ -78,6 +79,7 @@
       <span class="close" onclick="closeCreateUserModal()">&times;</span>
     </div>
     <form method="POST" action="{{ url_for('web_admin.admin_create_user') }}" class="modal-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <div class="form-group">
         <label for="username">Nom d'utilisateur</label>
         <input type="text" id="username" name="username" required placeholder="Nom d'utilisateur">
@@ -115,6 +117,7 @@
       <span class="close" onclick="closeDeleteUserModal()">&times;</span>
     </div>
     <form id="deleteUserForm" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <div class="modal-form">
         <p style="margin-bottom:2rem;">Voulez-vous vraiment supprimer l'utilisateur <span id="deleteUserName" style="font-weight:bold;"></span> ?</p>
         <div class="modal-actions">

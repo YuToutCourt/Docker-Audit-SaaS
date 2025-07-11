@@ -32,6 +32,7 @@
     <div class="agent-config-block">
       <h2>Configuration de l'agent</h2>
       <form action="{{ url_for('web_agent.agent_detail', agent_id=agent.id_agent) }}" method="post" class="agent-config-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div class="form-group">
           <label>Intervalle entre les scans :</label>
           <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -80,6 +81,7 @@
         <span class="close" onclick="closeDeleteAgentModal()">&times;</span>
       </div>
       <form method="POST" action="{{ url_for('web_agent.delete_agent', agent_id=agent.id_agent) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div class="modal-form">
           <p style="margin-bottom:2rem;">Voulez-vous vraiment supprimer l'agent <span style="font-weight:bold;">{{ agent.name }}</span> ?</p>
           <div class="modal-actions">
@@ -127,6 +129,7 @@
           <span class="close" onclick="closeDownloadReportModal()">&times;</span>
         </div>
         <form id="downloadReportForm" method="POST" style="display: flex; flex-direction: column; gap: 1.2rem;" onsubmit="handleDownloadSubmit(event)">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <div class="password-input-group">
             <span class="password-lock">🔒</span>
             <input type="password" name="report_password" id="report_password" required placeholder="Votre mot de passe">
@@ -136,6 +139,26 @@
             <button type="submit" class="btn-download-modern">Déchiffrer & Télécharger</button>
           </div>
           <input type="hidden" name="report_id" id="modal_report_id">
+        </form>
+      </div>
+    </div>
+    <!-- Modal de confirmation suppression rapport -->
+    <div id="deleteReportModal" class="modal">
+      <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+          <h2>Supprimer le rapport</h2>
+          <span class="close" onclick="closeDeleteReportModal()">&times;</span>
+        </div>
+        <form id="deleteReportForm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <div class="modal-form">
+            <p style="margin-bottom:2rem;">Voulez-vous vraiment supprimer le rapport du <span id="deleteReportDate" style="font-weight:bold;"></span> ?</p>
+            <p style="color: #f44336; font-size: 0.9rem; margin-bottom: 1rem;">⚠️ Cette action est irréversible.</p>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary card-btn" onclick="closeDeleteReportModal()">Annuler</button>
+              <button type="submit" class="btn btn-primary card-btn" style="background:#f44336;">Supprimer</button>
+            </div>
+          </div>
         </form>
       </div>
     </div>
@@ -157,6 +180,16 @@
       }
       function closeDownloadReportModal() {
         document.getElementById('downloadReportModal').style.display = 'none';
+      }
+      function openDeleteReportModal(reportId, reportDate) {
+        document.getElementById('deleteReportDate').textContent = reportDate;
+        document.getElementById('deleteReportModal').style.display = 'block';
+        // Fixer l'action du formulaire
+        var agentId = {{ agent.id_agent }};
+        document.getElementById('deleteReportForm').action = '/agent/' + agentId + '/delete_report/' + reportId;
+      }
+      function closeDeleteReportModal() {
+        document.getElementById('deleteReportModal').style.display = 'none';
       }
 
       function handleDownloadSubmit(event) {
@@ -220,9 +253,14 @@
           const formattedDate = formatDateFrench(r.date_);
           html += `<li style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0;border-bottom:1px solid #eee;">
             <span class="report-date" style="font-weight:500;">🕒 ${formattedDate}</span>
-            <button class="btn-download-modern" onclick="openDownloadReportModal(${r.id_report})" title="Télécharger ce rapport">
-              <span class="btn-icon">📥</span> Télécharger
-            </button>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <button class="btn-download-modern" onclick="openDownloadReportModal(${r.id_report})" title="Télécharger ce rapport">
+                <span class="btn-icon">📥</span> Télécharger
+              </button>
+              <button class="btn-delete-modern" onclick="openDeleteReportModal(${r.id_report}, '${formattedDate}')" title="Supprimer ce rapport" style="background:#f44336;color:white;border:none;padding:0.5rem;border-radius:4px;cursor:pointer;">
+                <span class="btn-icon">🗑️</span>
+              </button>
+            </div>
           </li>`;
         });
         document.getElementById('report-list').innerHTML = html;

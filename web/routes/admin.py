@@ -3,6 +3,7 @@ from services.admin_service import AdminService
 from services.auth_service import AuthService
 from validator.validator import Validator
 from functools import wraps
+import secrets
 
 admin_bp = Blueprint('web_admin', __name__)
 
@@ -18,12 +19,22 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def generate_csrf_token():
+    """Génère un token CSRF pour protéger les formulaires"""
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(32)
+    return session['csrf_token']
+
+def validate_csrf_token(token):
+    """Valide le token CSRF"""
+    return token == session.get('csrf_token')
+
 @admin_bp.route("/admin")
 @admin_required
 def admin_dashboard():
     """Tableau de bord admin"""
     stats = AdminService.get_global_stats()
-    return render_template("admin_panel.html", stats=stats)
+    return render_template("admin_panel.html", stats=stats, csrf_token=generate_csrf_token())
 
 @admin_bp.route("/admin/users")
 @admin_required
@@ -35,12 +46,18 @@ def admin_users():
     # Créer un dictionnaire des noms d'entreprises
     company_names = {company['id_company']: company['name'] for company in companies}
     
-    return render_template("admin_users.html", users=users, companies=companies, company_names=company_names)
+    return render_template("admin_users.html", users=users, companies=companies, company_names=company_names, csrf_token=generate_csrf_token())
 
 @admin_bp.route("/admin/users", methods=["POST"])
 @admin_required
 def admin_create_user():
     """Créer un utilisateur"""
+    # Validation CSRF
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash("Erreur de sécurité. Veuillez réessayer.", "error")
+        return redirect(url_for("web_admin.admin_users"))
+    
     username = request.form.get("username")
     password = request.form.get("password")
     company_id = request.form.get("id_company")
@@ -62,6 +79,12 @@ def admin_create_user():
 @admin_required
 def admin_delete_user(user_id):
     """Supprimer un utilisateur"""
+    # Validation CSRF
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash("Erreur de sécurité. Veuillez réessayer.", "error")
+        return redirect(url_for("web_admin.admin_users"))
+    
     success = AdminService.delete_user(user_id)
     if success:
         flash("Utilisateur supprimé avec succès", "success")
@@ -74,6 +97,12 @@ def admin_delete_user(user_id):
 @admin_required
 def admin_toggle_user(user_id):
     """Activer/désactiver un utilisateur"""
+    # Validation CSRF
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash("Erreur de sécurité. Veuillez réessayer.", "error")
+        return redirect(url_for("web_admin.admin_users"))
+    
     success = AdminService.toggle_user_enabled(user_id)
     if success:
         flash("Statut de l'utilisateur modifié.", "success")
@@ -101,12 +130,18 @@ def admin_companies():
             'agent_count': agent_count
         }
     
-    return render_template("admin_company.html", companies=companies, company_stats=company_stats)
+    return render_template("admin_company.html", companies=companies, company_stats=company_stats, csrf_token=generate_csrf_token())
 
 @admin_bp.route("/admin/companies", methods=["POST"])
 @admin_required
 def admin_create_company():
     """Créer une entreprise"""
+    # Validation CSRF
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash("Erreur de sécurité. Veuillez réessayer.", "error")
+        return redirect(url_for("web_admin.admin_companies"))
+    
     name = request.form.get("name")
     
     try:
@@ -125,6 +160,12 @@ def admin_create_company():
 @admin_required
 def admin_delete_company(company_id):
     """Supprimer une entreprise"""
+    # Validation CSRF
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash("Erreur de sécurité. Veuillez réessayer.", "error")
+        return redirect(url_for("web_admin.admin_companies"))
+    
     success = AdminService.delete_company(company_id)
     if success:
         flash("Entreprise supprimée avec succès", "success")
@@ -137,6 +178,12 @@ def admin_delete_company(company_id):
 @admin_required
 def admin_toggle_company(company_id):
     """Activer/désactiver une entreprise (avec cascade sur utilisateurs et agents)"""
+    # Validation CSRF
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash("Erreur de sécurité. Veuillez réessayer.", "error")
+        return redirect(url_for("web_admin.admin_companies"))
+    
     success = AdminService.toggle_company_enabled(company_id)
     if success:
         flash("Statut de l'entreprise modifié avec cascade sur les utilisateurs et agents.", "success")

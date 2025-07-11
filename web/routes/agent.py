@@ -8,6 +8,7 @@ from Crypto.Cipher import AES
 from io import BytesIO
 from functools import wraps
 from icecream import ic
+import secrets
 
 def login_required(f):
     @wraps(f)
@@ -17,6 +18,16 @@ def login_required(f):
             return redirect(url_for('main.login'))
         return f(*args, **kwargs)
     return decorated_function
+
+def generate_csrf_token():
+    """Génère un token CSRF pour protéger les formulaires"""
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(32)
+    return session['csrf_token']
+
+def validate_csrf_token(token):
+    """Valide le token CSRF"""
+    return token == session.get('csrf_token')
 
 agent_bp = Blueprint('web_agent', __name__)
 
@@ -42,6 +53,12 @@ def agent_detail(agent_id):
     success = error = None
     
     if request.method == "POST":
+        # Validation CSRF
+        csrf_token = request.form.get('csrf_token')
+        if not validate_csrf_token(csrf_token):
+            flash("Erreur de sécurité. Veuillez réessayer.", "error")
+            return redirect(url_for("web_agent.agent_detail", agent_id=agent_id))
+        
         # Logique de mise à jour de l'agent
         try:
             # Calculer le nouvel intervalle
@@ -101,7 +118,8 @@ def agent_detail(agent_id):
         scan_suivant=str_scan_suivant,
         scan_days=scan_days,
         scan_hours=scan_hours,
-        scan_minutes=scan_minutes
+        scan_minutes=scan_minutes,
+        csrf_token=generate_csrf_token()
     )
 
 @agent_bp.route("/agent/<int:agent_id>/download_certificate")
@@ -135,6 +153,12 @@ def download_agent_certificate(agent_id):
 def download_agent_report(agent_id, report_id):
     """Télécharger un rapport déchiffré"""
     company_id = session.get("id_company")
+    
+    # Validation CSRF
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash("Erreur de sécurité. Veuillez réessayer.", "error")
+        return redirect(url_for("web_agent.agent_detail", agent_id=agent_id))
     
     password = request.form.get('report_password')
     if not password:
@@ -204,11 +228,66 @@ def download_agent_report(agent_id, report_id):
         flash(f"Impossible de déchiffrer le rapport", "error")
         return redirect(url_for("web_agent.agent_detail", agent_id=agent_id))
 
+@agent_bp.route("/agent/<int:agent_id>/delete_report/<int:report_id>", methods=["POST"])
+@login_required
+def delete_agent_report(agent_id, report_id):
+    """Supprimer un rapport"""
+    company_id = session.get("id_company")
+    
+    # Validation CSRF
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash("Erreur de sécurité. Veuillez réessayer.", "error")
+        return redirect(url_for("web_agent.agent_detail", agent_id=agent_id))
+    
+    # Vérifier que l'agent appartient à l'entreprise de l'utilisateur
+    agent_data = AgentService.get_agent_by_id_and_company(agent_id, company_id)
+    if not agent_data:
+        flash("Agent non trouvé ou accès interdit", "error")
+        return redirect(url_for("main.dashboard"))
+    
+    # Récupérer et supprimer le rapport
+    from entity.report import Report
+    from database.database import Database
+    
+    db = Database()
+    try:
+        report = db.session.query(Report).filter_by(
+            id_report=report_id, 
+            id_agent=agent_id, 
+            id_company=company_id
+        ).first()
+        
+        if not report:
+            flash("Rapport non trouvé", "error")
+            return redirect(url_for("web_agent.agent_detail", agent_id=agent_id))
+        
+        # Supprimer le rapport
+        db.session.delete(report)
+        db.session.commit()
+        
+        flash("Rapport supprimé avec succès", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        ic(e)
+        flash("Erreur lors de la suppression du rapport", "error")
+    finally:
+        db.close()
+    
+    return redirect(url_for("web_agent.agent_detail", agent_id=agent_id))
+
 @agent_bp.route("/agent/delete/<int:agent_id>", methods=["POST"])
 @login_required
 def delete_agent(agent_id):
     """Supprimer un agent"""
     company_id = session.get("id_company")
+    
+    # Validation CSRF
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash("Erreur de sécurité. Veuillez réessayer.", "error")
+        return redirect(url_for("main.dashboard"))
     
     success = AgentService.delete_agent(agent_id, company_id)
     if success:

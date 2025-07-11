@@ -39,6 +39,7 @@
           <td>
             <div class="action-buttons">
               <form method="POST" action="{{ url_for('web_admin.admin_toggle_company', company_id=company.id_company) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <button type="submit" class="btn-icon-btn" title="{{ 'Désactiver' if company.enabled else 'Activer' }}">
                   <span>{% if company.enabled %}🚫{% else %}✅{% endif %}</span>
                 </button>
@@ -63,6 +64,7 @@
       <span class="close" onclick="closeCreateCompanyModal()">&times;</span>
     </div>
     <form method="POST" class="modal-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <div class="form-group">
         <label for="company_name">Nom de l'entreprise</label>
         <input type="text" id="company_name" name="name" required placeholder="Nom de l'entreprise">
@@ -83,6 +85,7 @@
       <span class="close" onclick="closeDeleteCompanyModal()">&times;</span>
     </div>
     <form id="deleteCompanyForm" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <div class="modal-form">
         <p style="margin-bottom:2rem;">Voulez-vous vraiment supprimer l'entreprise <span id="deleteCompanyName" style="font-weight:bold;"></span> ?</p>
         <div class="modal-actions">

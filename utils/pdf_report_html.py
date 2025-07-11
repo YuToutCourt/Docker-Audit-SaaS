@@ -1,35 +1,59 @@
 from weasyprint import HTML
 from io import BytesIO
 import os
+import re
 from icecream import ic
 
 # Mapping des vérifications pour des noms plus lisibles
 VERIFICATION_MAPPING = {
     # Host checks
     'daemon_json_check': 'Configuration daemon.json',
-    'docker_socket_check': 'Accès socket Docker',
+    'docker_socket_check': 'Socket Docker',
     'docker_versions_check': 'Versions Docker',
     'rootless_check': 'Mode rootless',
+    'os_versions_check': 'Versions OS',
+    'docker_registry_check': 'Registre Docker',
+    'ipv6_forwarding_check': 'Forwarding IPv6',
     
     # Container checks
     'docker_container_capabilities_check': 'Capacités du conteneur',
     'docker_container_registry_check': 'Registre d\'images',
     'docker_container_sensitives_check': 'Données sensibles',
+    'docker_container_volumes_check': 'Volumes',
+    'docker_container_ports_check': 'Ports exposés',
 }
+
+def highlight_linux_paths(text):
+    """Détecte et marque les chemins Linux avec la classe CSS"""
+    if not isinstance(text, str):
+        return text
+    
+    # Pattern pour détecter les chemins Linux
+    # Matche les chemins commençant par / et contenant des caractères typiques
+    path_pattern = r'/[a-zA-Z0-9._/-]+'
+    
+    def replace_path(match):
+        path = match.group(0)
+        # Vérifier que c'est bien un chemin (pas juste un slash)
+        if len(path) > 1 and not path.endswith('/'):
+            return f'<span class="linux-path">{path}</span>'
+        return path
+    
+    return re.sub(path_pattern, replace_path, text)
 
 def status_class(status):
     if status is False:
-        return 'status-ko', '❌ VULNÉRABLE'
+        return 'status-ko', 'VULNÉRABLE'
     if status is True:
-        return 'status-ok', '✅ SÉCURISÉ'
+        return 'status-ok', 'SÉCURISÉ'
     if status is None:
-        return 'status-skipped', '⚠️ NON VÉRIFIABLE'
+        return 'status-skipped', 'NON VÉRIFIABLE'
     if status == 'success':
-        return 'status-ok', '✅ SÉCURISÉ'
+        return 'status-ok', 'SÉCURISÉ'
     if status == 'skipped':
-        return 'status-skipped', '⏭️ IGNORÉ'
+        return 'status-skipped', 'IGNORÉ'
     if status == 'info':
-        return 'status-info', 'ℹ️ INFO'
+        return 'status-info', 'INFO'
     return 'status-unknown', str(status)
 
 def format_verification_value(val):
@@ -56,6 +80,33 @@ def format_verification_value(val):
                             details.append(', '.join(value))
                         else:
                             details.append("Aucune donnée sensible détectée")
+                    elif key == 'volumes':
+                        if isinstance(value, list) and value:
+                            # Traiter les volumes comme une liste de dictionnaires
+                            volume_details = []
+                            for vol in value:
+                                if isinstance(vol, dict):
+                                    source = vol.get('Source', 'N/A')
+                                    destination = vol.get('Destination', 'N/A')
+                                    volume_details.append(f"{source} → {destination}<br>")
+                                    volume_details.append(f"Mode: {vol.get('Mode', '')}<br>")
+                                else:
+                                    volume_details.append(str(vol))
+                            details.append(' '.join(volume_details))
+                        else:
+                            details.append("Aucun volume monté")
+                    elif key == 'ports':
+                        if isinstance(value, list) and value:
+                            port_lines = []
+                            for port in value:
+                                if isinstance(port, dict):
+                                    # Afficher tous les champs du dict sur une ligne, séparés par ', '
+                                    port_lines.append(', '.join(f"{k}: {v}" for k, v in port.items()))
+                                else:
+                                    port_lines.append(str(port))
+                            details.append('<br>'.join(port_lines))
+                        else:
+                            details.append("Aucun port exposé")
                     elif key == 'registry_type':
                         details.append(f"Type: {value}")
                     elif key == 'uses_private_registry':
@@ -65,11 +116,29 @@ def format_verification_value(val):
                     elif key == 'remote_version':
                         details.append(f"Version distante: {value}")
                     elif key == 'message':
-                        details.append(f"Message: {value}")
+                        # Essayer de parser le message comme JSON
+                        try:
+                            import json
+                            msg_val = value
+                            if isinstance(msg_val, str):
+                                parsed = json.loads(msg_val)
+                                if isinstance(parsed, list) and all(isinstance(p, dict) for p in parsed):
+                                    port_lines = []
+                                    for port in parsed:
+                                        port_lines.append(', '.join(f"{k}: {v}" for k, v in port.items()))
+                                    details.append('<br>'.join(port_lines))
+                                else:
+                                    details.append(msg_val)
+                            else:
+                                details.append(str(msg_val))
+                        except Exception:
+                            details.append(str(value))
                     else:
-                        details.append(f"{key}: {value}")
+                        details.append(value)
             
-            detail_text = '; '.join(details) if details else ''
+            detail_text = '<br>'.join(details) if details else ''
+            # Appliquer la mise en évidence des chemins Linux
+            detail_text = highlight_linux_paths(detail_text)
             return cls, txt, detail_text
         else:
             # Dictionnaire sans status, afficher toutes les valeurs
@@ -79,9 +148,15 @@ def format_verification_value(val):
                     details.append(f"{key}: {', '.join(value)}")
                 else:
                     details.append(f"{key}: {value}")
-            return 'status-info', 'ℹ️ INFO', '; '.join(details)
+            detail_text = '<br> '.join(details)
+            # Appliquer la mise en évidence des chemins Linux
+            detail_text = highlight_linux_paths(detail_text)
+            return 'status-info', 'INFO', detail_text
     elif isinstance(val, list):
-        return 'status-info', 'ℹ️ INFO', ', '.join(str(item) for item in val)
+        detail_text = ', '.join(str(item) for item in val)
+        # Appliquer la mise en évidence des chemins Linux
+        detail_text = highlight_linux_paths(detail_text)
+        return 'status-info', 'INFO', detail_text
     elif isinstance(val, str):
         # Essayer de parser le JSON string
         try:
@@ -89,7 +164,9 @@ def format_verification_value(val):
             parsed = json.loads(val)
             return format_verification_value(parsed)
         except:
-            return 'status-info', 'ℹ️ INFO', val
+            # Appliquer la mise en évidence des chemins Linux
+            highlighted_val = highlight_linux_paths(val)
+            return 'status-info', 'INFO', highlighted_val
     else:
         cls, txt = status_class(val)
         return cls, txt, ''
@@ -101,14 +178,20 @@ def get_verification_name(key):
 def count_vuln_and_secure(report_data):
     vuln = 0
     secure = 0
+    skipped = 0
+    info = 1
     def count_in_dict(d):
-        nonlocal vuln, secure
-        for v in d.values():
+        nonlocal vuln, secure, skipped, info
+        for key, v in d.items():
             if isinstance(v, dict) and 'status' in v:
                 if v['status'] is False:
                     vuln += 1
-                elif v['status'] is True:
+                elif v['status'] is True and key != 'running':
                     secure += 1
+                elif v['status'] == "skipped":
+                    skipped += 1
+                elif v['status'] == 'info':
+                    info += 1
             elif isinstance(v, dict):
                 count_in_dict(v)
             elif isinstance(v, str):
@@ -118,18 +201,22 @@ def count_vuln_and_secure(report_data):
                     if isinstance(parsed, dict) and 'status' in parsed:
                         if parsed['status'] is False:
                             vuln += 1
-                        elif parsed['status'] is True:
+                        elif parsed['status'] is True and key != 'running':
                             secure += 1
+                        elif parsed['status'] == "skipped":
+                            skipped += 1
+                        elif parsed['status'] =='info':
+                            info += 1
                 except:
                     pass
     count_in_dict(report_data.get('host', {}))
     for cdata in report_data.get('containers', {}).values():
         count_in_dict(cdata)
-    return vuln, secure
+    return vuln, secure, skipped, info
 
 def generate_html_report(agent_name, report_date, report_data, logo_url=None, css_path=None):
     ic(report_data)
-    vuln, secure = count_vuln_and_secure(report_data)
+    vuln, secure, skipped, info = count_vuln_and_secure(report_data)
     # Page de couverture
     html = '<div class="cover">'
     if logo_url:
@@ -139,15 +226,17 @@ def generate_html_report(agent_name, report_date, report_data, logo_url=None, cs
     html += f'<div class="cover-date">Date du rapport : {report_date}</div>'
     html += '<div class="cover-intro">Ce rapport présente l\'état de sécurité de l\'hôte et des conteneurs Docker audités.</div>'
     # Tableau de synthèse sur la première page
-    html += '<div class="section" style="margin-top:2em;">'
-    html += '<h2 style="font-size:1.3em;">Résumé des vérifications</h2>'
-    html += '<table class="security-table" style="max-width:400px;margin-bottom:2em;">'
+    html += '<div class="section" style="margin-top:2em<br>">'
+    html += '<h2 style="font-size:1.3em<br>">Résumé des vérifications</h2>'
+    html += '<table class="security-table" style="max-width:400px<br>margin-bottom:2em<br>">'
     html += '<thead><tr><th>Type</th><th>Nombre</th></tr></thead>'
-    html += f'<tr><td class="status-ko">Vulnérabilités</td><td style="text-align:center;font-weight:bold;">{vuln}</td></tr>'
-    html += f'<tr><td class="status-ok">Sécurisées</td><td style="text-align:center;font-weight:bold;">{secure}</td></tr>'
+    html += f'<tr><td class="status-ko">Vulnérabilités</td><td style="text-align:center<br>font-weight:bold<br>">{vuln}</td></tr>'
+    html += f'<tr><td class="status-ok">Sécurisées</td><td style="text-align:center<br>font-weight:bold<br>">{secure}</td></tr>'
+    html += f'<tr><td class="status-skipped">Ignorées</td><td style="text-align:center<br>font-weight:bold<br>">{skipped}</td></tr>'
+    html += f'<tr><td class="status-info">Informations</td><td style="text-align:center<br>font-weight:bold<br>">{info}</td></tr>'
     html += '</table>'
     html += '</div>'
-    html += '</div><div style="page-break-after: always;"></div>'
+    html += '</div><div style="page-break-after: always<br>"></div>'
 
     # Vulnérabilités globales (host)
     html += '<div class="section">'
@@ -178,15 +267,49 @@ def generate_html_report(agent_name, report_date, report_data, logo_url=None, cs
             verification_name = get_verification_name(k)
             cls, status_txt, detail_txt = format_verification_value(v)
             html += f'<tr><td class="verification-name">{verification_name}</td><td class="{cls}">{status_txt}</td><td class="detail">{detail_txt}</td></tr>'
-        
         # État du conteneur
         running = cdata.get('running', None)
         if running is not None:
-            cls, txt = status_class(running)
-            status_txt = txt
             detail_txt = 'En cours d\'exécution' if running else 'Arrêté'
-            html += f'<tr><td class="verification-name">État du conteneur</td><td class="{cls}">{status_txt}</td><td class="detail">{detail_txt}</td></tr>'
+            html += f'<tr><td class="verification-name">État du conteneur</td><td class="status-info">INFO</td><td class="detail">{detail_txt}</td></tr>'
         html += '</tbody></table>'
+
+        # Générer les recommandations pour les checks vulnérables
+        recommandations = []
+        for k, v in cdata.items():
+            if k in ('container_name', 'image', 'running'):
+                continue
+            # On gère les cas où v est un dict avec status
+            if isinstance(v, dict) and v.get('status', None) is False:
+                # Utiliser le message si présent
+                msg = v.get('message')
+                if msg:
+                    recommandations.append(msg)
+                else:
+                    # Phrase générique selon le type de check
+                    if 'volume' in k:
+                        recommandations.append("Vérifiez les permissions des volumes montés.")
+                    elif 'port' in k:
+                        recommandations.append("Un ou plusieurs ports sont exposés publiquement. Restreindre l'accès si possible.")
+                    elif 'rootless' in k:
+                        recommandations.append("Le conteneur fonctionne avec l'utilisateur root. Passez en mode rootless.")
+                    elif 'capabilities' in k:
+                        recommandations.append("Vérifiez les capacités du conteneur.")
+                    elif 'registry' in k:
+                        recommandations.append("Vérifiez les registres utilisés par le conteneur.")
+                    elif 'sensitives' in k:
+                        recommandations.append("Vérifiez les données sensibles du conteneur.")
+                    else:
+                        recommandations.append(f"Vulnérabilité détectée sur : {get_verification_name(k)}.")
+        # Afficher le tableau des recommandations s'il y en a
+        if recommandations:
+            html += '<div class="reco-section" style="margin-top:1em">'
+            html += '<table class="reco-table" style="border-collapse: collapse; width: 100%; font-size: 0.95em;">'
+            html += '<thead><tr style="background-color: #ffecec;"><th style="border: 1px solid #f5c2c2; padding: 6px; text-align: left;">Recommandations</th></tr></thead>'
+            html += '<tbody>'
+            for reco in recommandations:
+                html += f'<tr><td style="border: 1px solid #f5c2c2; padding: 6px;">{reco}</td></tr>'
+            html += '</tbody></table></div>'
         html += '</div>'
     
     # CSS : NE PAS METTRE DE CSS EN DUR ICI, toujours charger depuis css_path !

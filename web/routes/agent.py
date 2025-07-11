@@ -200,6 +200,7 @@ def download_agent_report(agent_id, report_id):
         from utils.pdf_report_html import html_to_pdf, generate_html_report
 
         import os
+        
         logo_path = os.path.abspath("static/images/logo.png")
         logo_url = f"file://{logo_path}"
         css_path = "static/style/report.css"

@@ -249,16 +249,6 @@ docker-compose up -d
 4. Push vers la branche (`git push origin feature/AmazingFeature`)
 5. Ouvrir une Pull Request
 
-## 📄 Licence
-
-Ce projet est sous licence [MIT](LICENSE).
-
-## 🆘 Support
-
-Pour toute question ou problème :
-- Ouvrir une issue sur GitHub
-- Contacter l'équipe de développement
-
 ---
 
 **Docker Audit SaaS** - Une solution complète pour l'audit de conteneurs Docker en mode SaaS.
